@@ -1,0 +1,58 @@
+# Dizin listelemeyi devre dışı bırak
+Options -Indexes
+
+# PHP hata gösterimini kapat
+php_flag display_errors off
+php_value error_reporting 0
+
+# Hassas dosyaları koruma - Discord status API'a izin verildi
+<FilesMatch "(\.env|.*\.log)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# Sadece özel JSON dosyalarını engelle, API'lar için gerekli olanlar hariç
+<FilesMatch "(spotify_token\.json|.*error\.json)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# Font dosyalarına erişim izni ver
+<FilesMatch "\.(woff|woff2|ttf|otf|eot)$">
+  <IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+  </IfModule>
+</FilesMatch>
+
+# Logs dizinine erişimi engelle
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^logs/.* - [F,L]
+</IfModule>
+
+# HTTP isteklerini güvenli hale getir
+<IfModule mod_headers.c>
+  # XSS Koruması
+  Header always set X-XSS-Protection "1; mode=block"
+  
+  # MIME sniffing koruması
+  Header always set X-Content-Type-Options "nosniff"
+  
+  # Clickjacking koruması
+  Header always set X-Frame-Options "SAMEORIGIN"
+  
+  # Referrer Policy
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  
+  # Content Security Policy - Animasyonlar ve fontlar için genişletildi
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https://*.scdn.co; connect-src 'self' localhost:*; frame-src 'self'; worker-src 'self'; media-src 'self'"
+</IfModule>
+
+# Özel MIME türleri
+<IfModule mod_mime.c>
+  AddType application/x-font-ttf        ttf
+  AddType application/x-font-otf        otf
+  AddType application/font-woff         woff
+  AddType application/font-woff2        woff2
+  AddType application/vnd.ms-fontobject eot
+</IfModule>

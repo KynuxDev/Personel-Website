@@ -1,0 +1,24 @@
+# Çevre değişkenleri
+.env
+
+# Log dosyaları
+logs/
+*.log
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Spotify ve Discord token dosyaları
+*_token.log
+*_player.log
+*_status.json
+
+# Config dosyaları
+spotify_config.json
+
+# Geçici dosyalar
+.DS_Store
+Thumbs.db
