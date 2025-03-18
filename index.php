@@ -1,56 +1,144 @@
 <?php
-function getDiscordStatus() {
-    $status_file = 'logs/discord_status.json';
+function getGithubRepositories($username) {
+    $url = "https://api.github.com/users/{$username}/repos";
     
-    // Status dosyası var mı kontrol et
-    if (file_exists($status_file)) {
+    $options = [
+        'http' => [
+            'method' => 'GET',
+            'header' => [
+                'User-Agent: PHP GitHub Portfolio'
+            ]
+        ]
+    ];
+    
+    $context = stream_context_create($options);
+    
+    $response = @file_get_contents($url, false, $context);
+    
+    if ($response === false) {
+        return ['error' => 'GitHub API\'sine bağlanılamadı.'];
+    }
+    
+    $repositories = json_decode($response, true);
+    
+    if (isset($repositories['message'])) {
+        return ['error' => $repositories['message']];
+    }
+    
+    return $repositories;
+}
+
+function sortRepositories($repositories, $sortBy = 'updated') {
+    usort($repositories, function($a, $b) use ($sortBy) {
+        if ($sortBy === 'stars') {
+            return $b['stargazers_count'] - $a['stargazers_count'];
+        } else if ($sortBy === 'updated') {
+            return strtotime($b['updated_at']) - strtotime($a['updated_at']);
+        } else if ($sortBy === 'created') {
+            return strtotime($b['created_at']) - strtotime($a['created_at']);
+        }
+        return 0;
+    });
+    
+    return $repositories;
+}
+
+function formatDate($dateString) {
+    $date = new DateTime($dateString);
+    return $date->format('d.m.Y');
+}
+
+function getGithubUserInfo($username) {
+    $url = "https://api.github.com/users/{$username}";
+    
+    $options = [
+        'http' => [
+            'method' => 'GET',
+            'header' => [
+                'User-Agent: PHP GitHub Portfolio'
+            ]
+        ]
+    ];
+    
+    $context = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+    
+    if ($response === false) {
+        return ['error' => 'GitHub API\'sine bağlanılamadı.'];
+    }
+    
+    $userInfo = json_decode($response, true);
+    
+    if (isset($userInfo['message'])) {
+        return ['error' => $userInfo['message']];
+    }
+    
+    return $userInfo;
+}
+
+function getDiscordStatus() {
+    // Yeni klasör yapısında Discord durum dosyasının yolları
+    $status_paths = [
+        'discord-bot/logs/discord_status.json', // Önce Discord bot klasöründe ara
+        'logs/discord_status.json',             // Sonra ana klasörde ara
+    ];
+    
+    // Durum dosyasını bul
+    $status_file = null;
+    foreach ($status_paths as $path) {
+        if (file_exists($path)) {
+            $status_file = $path;
+            break;
+        }
+    }
+    
+    // Durum dosyası bulunduysa içeriğini oku
+    if ($status_file) {
         try {
-            // Status dosyasından veriyi oku
             $status_content = file_get_contents($status_file);
             $status_data = json_decode($status_content, true);
             
-            // Dosya başarıyla okundu ve içeriği geçerli JSON ise
             if ($status_data && isset($status_data['status'])) {
-                // Dosyadan gelen verileri döndür
                 return [
                     'status' => $status_data['status'],
                     'game' => $status_data['game'] ?? '',
                     'has_game' => $status_data['has_game'] ?? false,
                     'username' => $status_data['username'] ?? 'kynux.dev',
-                    'discriminator' => $status_data['discriminator'] ?? '0000'
+                    'discriminator' => $status_data['discriminator'] ?? '0000',
+                    'last_updated' => $status_data['last_updated'] ?? date('Y-m-d H:i:s')
                 ];
             }
         } catch (Exception $e) {
-            // JSON ayrıştırma hatası
+            $log_dir = 'logs';
+            if (!file_exists($log_dir)) {
+                mkdir($log_dir, 0755, true);
+            }
             file_put_contents('logs/discord_error.log', date('Y-m-d H:i:s') . " - JSON Error: " . $e->getMessage() . "\n", FILE_APPEND);
         }
     }
     
-    // Varsayılan değerler (dosya yoksa veya okunamazsa)
+    // Varsayılan durum bilgileri
     return [
         'status' => 'online',
-        'game' => '',  // Varsayılan olarak boş bırak
+        'game' => '',
         'has_game' => false,
         'username' => 'kynux.dev',
-        'discriminator' => '0000'
+        'discriminator' => '0000',
+        'last_updated' => date('Y-m-d H:i:s')
     ];
 }
 
-// Spotify API Bağlantısı - Tam Otomatik Token Yenileme/Alma
 function getSpotifyStatus() {
-    // Spotify API bilgileri - Güvenli şekilde .env dosyasından al
     $env_file = __DIR__ . '/.env';
     $client_id = '';
     $client_secret = '';
     
-    // .env dosyası varsa, değerleri al
     if (file_exists($env_file)) {
         $env_vars = parse_ini_file($env_file);
         $client_id = $env_vars['SPOTIFY_CLIENT_ID'] ?? '';
         $client_secret = $env_vars['SPOTIFY_CLIENT_SECRET'] ?? '';
     }
     
-    // API kimlik bilgileri yoksa, erken çık
     if (empty($client_id) || empty($client_secret)) {
         error_log("Spotify yapılandırma hatası: API kimlik bilgileri bulunamadı.");
         return [
@@ -62,18 +150,15 @@ function getSpotifyStatus() {
         ];
     }
     
-    // Logs klasörü kontrolü
     if (!file_exists('logs')) {
         mkdir('logs', 0755, true);
     }
     
-    // Config dosyası için kontrol
     $spotify_config_file = 'spotify_config.json';
     $refresh_token = '';
     $config_data = [];
     $access_token = '';
     
-    // Eğer dosya varsa, okuyalım
     if (file_exists($spotify_config_file)) {
         $config_content = file_get_contents($spotify_config_file);
         $config_data = json_decode($config_content, true);
@@ -82,12 +167,10 @@ function getSpotifyStatus() {
         $token_expiry = $config_data['token_expiry'] ?? 0;
     }
     
-    // Spotify code geldi mi kontrol et (OAuth callback'ten)
     if (isset($_GET['code'])) {
         $code = $_GET['code'];
         $redirect_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}/spotify-callback.php";
         
-        // Token almak için API isteği yap
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://accounts.spotify.com/api/token");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -103,13 +186,11 @@ function getSpotifyStatus() {
         $response = curl_exec($ch);
         curl_close($ch);
         
-        // Token yanıtını logla ve işle
         file_put_contents('logs/spotify_token_response.log', date('Y-m-d H:i:s') . " - Response from auth code: " . $response . "\n", FILE_APPEND);
         
         $data = json_decode($response, true);
         
         if (isset($data['refresh_token']) && isset($data['access_token'])) {
-            // Tokenleri kaydet
             $refresh_token = $data['refresh_token'];
             $access_token = $data['access_token'];
             $expires_in = $data['expires_in'] ?? 3600;
@@ -121,16 +202,12 @@ function getSpotifyStatus() {
             
             file_put_contents($spotify_config_file, json_encode($config_data));
             
-            // Sayfayı temiz URL'e yönlendir (code parametresini kaldır)
             header("Location: index.php");
             exit;
         }
     }
     
-        // Eğer refresh token yoksa veya kod gelmemişse, yetkilendirme URL'sine yönlendir
     if (empty($refresh_token) && !isset($_GET['code'])) {
-        // Auto-redirect yerine sadece varsayılan değerler gösterelim
-        // Ve bir sonraki yüklemede kullanıcı bağlantıya tıklayabilir
         $redirect_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}/spotify-callback.php";
         $auth_url = "https://accounts.spotify.com/authorize?client_id={$client_id}&response_type=code&redirect_uri=" . urlencode($redirect_uri) . "&scope=user-read-currently-playing%20user-read-playback-state&show_dialog=true";
         
@@ -146,15 +223,12 @@ function getSpotifyStatus() {
         ];
     }
     
-    // Token geçerlilik süresini kontrol et
     $token_expiry = $config_data['token_expiry'] ?? 0;
     $now = time();
     
-    // Eğer access token süresi dolmuşsa veya yoksa, refresh token ile yenile
     if ($now >= $token_expiry || empty($access_token)) {
     
         try {
-            // Refresh token ile yeni access token al
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, "https://accounts.spotify.com/api/token");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -167,29 +241,24 @@ function getSpotifyStatus() {
             $token_response = curl_exec($ch);
             $token_data = json_decode($token_response, true);
             
-            // Debug için token yanıtını logla
             file_put_contents('logs/spotify_token.log', date('Y-m-d H:i:s') . " - Token Refresh Response: " . print_r($token_data, true) . "\n", FILE_APPEND);
             
             if (isset($token_data['access_token'])) {
                 $access_token = $token_data['access_token'];
                 $expires_in = $token_data['expires_in'] ?? 3600;
                 
-                // Config dosyasını güncelle
                 $config_data['access_token'] = $access_token;
                 $config_data['token_expiry'] = time() + $expires_in;
                 $config_data['updated_at'] = date('Y-m-d H:i:s');
                 
-                // Eğer yeni bir refresh token geldiyse, onu da kaydet
                 if (isset($token_data['refresh_token'])) {
                     $config_data['refresh_token'] = $token_data['refresh_token'];
                 }
                 
                 file_put_contents($spotify_config_file, json_encode($config_data));
             } else {
-                // Token alınamadıysa hata logla
                 file_put_contents('logs/spotify_error.log', date('Y-m-d H:i:s') . " - Failed to refresh token: " . print_r($token_data, true) . "\n", FILE_APPEND);
                 
-                // Yeniden yetkilendirme süreci başlat
                 $redirect_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}/spotify-callback.php";
                 $auth_url = "https://accounts.spotify.com/authorize?client_id={$client_id}&response_type=code&redirect_uri=" . urlencode($redirect_uri) . "&scope=user-read-currently-playing%20user-read-playback-state&show_dialog=true";
                 
@@ -208,7 +277,6 @@ function getSpotifyStatus() {
     }
     
     try {
-        // Access token ile çalan şarkı bilgisini al
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://api.spotify.com/v1/me/player/currently-playing");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -221,10 +289,8 @@ function getSpotifyStatus() {
         
         curl_close($ch);
         
-        // Debug için player yanıtını logla
         file_put_contents('logs/spotify_player.log', date('Y-m-d H:i:s') . " - Player Response: " . print_r($player_data, true) . "\n", FILE_APPEND);
         
-    // Eğer şu anda bir şarkı çalıyorsa ve veri doğru geldiyse
         if (isset($player_data['is_playing']) && $player_data['is_playing'] && isset($player_data['item'])) {
             return [
                 'is_playing' => true,
@@ -233,7 +299,6 @@ function getSpotifyStatus() {
                 'album_art' => $player_data['item']['album']['images'][1]['url']
             ];
         } else {
-            // Şarkı çalmıyorsa veya veri gelmiyorsa
             return [
                 'is_playing' => false,
                 'song' => '',
@@ -245,7 +310,6 @@ function getSpotifyStatus() {
         file_put_contents('logs/spotify_error.log', date('Y-m-d H:i:s') . " - API error: " . $e->getMessage() . "\n", FILE_APPEND);
     }
     
-    // API hatası durumunda
     return [
         'is_playing' => false,
         'song' => '',
@@ -254,31 +318,10 @@ function getSpotifyStatus() {
     ];
 }
 
-// API'lerden veri çekme
 $discord = getDiscordStatus();
 $spotify = getSpotifyStatus();
 
-// Discord ve Spotify API kurulumu konusunda bilgilendirme
-$api_setup_info = "
-<!--
-API KURULUM BİLGİSİ:
-
-1. Discord API için:
-   - Discord Developer Portal'a git: https://discord.com/developers/applications
-   - Yeni bir uygulama oluştur
-   - Bot sekmesinde bot oluştur ve token'ı kopyala
-   - Bu token'ı yukarıda YOUR_DISCORD_BOT_TOKEN yerine yapıştır
-   - Kullanıcı ID'nizi Discord'da geliştirici modunu açarak bulabilirsiniz
-
-2. Spotify API için:
-   - Spotify Developer Dashboard'a git: https://developer.spotify.com/dashboard
-   - Yeni bir uygulama oluştur
-   - Client ID ve Client Secret'ı kopyala
-   - Bir refresh token almak için OAuth akışını kullanmalısınız:
-     https://developer.spotify.com/documentation/general/guides/authorization-guide/
-   - Alınan bilgileri yukarıdaki ilgili değişkenlere yapıştır
--->
-";
+$api_setup_info = "";
 ?>
 <!DOCTYPE html>
 <html lang="tr">
@@ -288,10 +331,13 @@ API KURULUM BİLGİSİ:
     <title>kynux.dev - Kişisel Tanıtım</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
 </head>
 <body>
+    <div class="bg-particles" id="particles-js"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-gradient"></div>
     <nav class="navbar">
         <div class="logo">
             <span>Kynux<span class="highlight">Dev</span></span>
@@ -512,64 +558,173 @@ API KURULUM BİLGİSİ:
                 </div>
             </div>
             
-            <div class="projects-grid">
-                <div class="project-card" data-aos="zoom-in-up" data-aos-delay="200">
-                    <div class="project-content">
-                        <div class="project-header">
-                            <h3 class="project-title">E-Ticaret Platformu</h3>
-                            <div class="project-links">
-                                <a href="https://github.com/kynux.dev/ecommerce" target="_blank" class="project-link"><i class="fab fa-github"></i></a>
-                                <a href="https://github.com/kynux.dev" target="_blank" class="project-link"><i class="fas fa-external-link-alt"></i></a>
+            <?php
+            // GitHub kullanıcı adı
+            $github_username = 'KynuxDev';
+
+            // Sıralama seçeneği (varsayılan: güncelleme tarihine göre)
+            $sort_by = isset($_GET['sort']) ? $_GET['sort'] : 'updated';
+
+            // Repoları ve kullanıcı bilgilerini çekme
+            $repositories = getGithubRepositories($github_username);
+            $userInfo = getGithubUserInfo($github_username);
+
+            // Hata kontrolü
+            $error = null;
+            if (isset($repositories['error'])) {
+                $error = $repositories['error'];
+                $repositories = [];
+            } else {
+                $repositories = sortRepositories($repositories, $sort_by);
+            }
+            ?>
+            
+            <?php if ($error): ?>
+                <div class="error-message" data-aos="fade-up">
+                    <p><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?></p>
+                </div>
+            <?php else: ?>
+                <div class="github-profile" data-aos="fade-up">
+                    <?php if (!isset($userInfo['error'])): ?>
+                        <div class="profile-summary">
+                            <img class="profile-image" src="<?php echo htmlspecialchars($userInfo['avatar_url']); ?>" alt="<?php echo htmlspecialchars($github_username); ?> profil resmi">
+                            <div class="profile-details">
+                                <h3 class="profile-name"><?php echo htmlspecialchars($userInfo['name'] ?? $github_username); ?></h3>
+                                <p class="profile-username">@<?php echo htmlspecialchars($github_username); ?></p>
+                                
+                                <?php if (!empty($userInfo['bio'])): ?>
+                                    <p class="profile-bio"><?php echo htmlspecialchars($userInfo['bio']); ?></p>
+                                <?php endif; ?>
+                                
+                                <div class="profile-stats">
+                                    <div class="stat">
+                                        <i class="fas fa-users"></i>
+                                        <span><?php echo htmlspecialchars($userInfo['followers']); ?> Takipçi</span>
+                                    </div>
+                                    <div class="stat">
+                                        <i class="fas fa-user-plus"></i>
+                                        <span><?php echo htmlspecialchars($userInfo['following']); ?> Takip Edilen</span>
+                                    </div>
+                                    <div class="stat">
+                                        <i class="fas fa-code-branch"></i>
+                                        <span><?php echo count($repositories); ?> Repo</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <p class="project-desc">Tam kapsamlı bir e-ticaret çözümü. Ürün yönetimi, sepet işlemleri ve ödeme entegrasyonu içerir.</p>
-                        <div class="project-tech">
-                            <span class="tech-tag">React</span>
-                            <span class="tech-tag">Node.js</span>
-                            <span class="tech-tag">MongoDB</span>
-                            <span class="tech-tag">Stripe API</span>
-                        </div>
+                    <?php endif; ?>
+                </div>
+                
+                <div class="sort-controls" data-aos="fade-up">
+                    <div class="sort-options">
+                        <a href="?sort=updated" class="<?php echo $sort_by === 'updated' ? 'active' : ''; ?>">
+                            <i class="fas fa-clock"></i> Son Güncellenen
+                        </a>
+                        <a href="?sort=stars" class="<?php echo $sort_by === 'stars' ? 'active' : ''; ?>">
+                            <i class="fas fa-star"></i> Yıldızlar
+                        </a>
+                        <a href="?sort=created" class="<?php echo $sort_by === 'created' ? 'active' : ''; ?>">
+                            <i class="fas fa-calendar-plus"></i> Yeni Eklenen
+                        </a>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="repoSearch" placeholder="Repo ara...">
+                        <i class="fas fa-search"></i>
                     </div>
                 </div>
                 
-                <div class="project-card" data-aos="zoom-in-up" data-aos-delay="400">
-                    <div class="project-content">
-                        <div class="project-header">
-                            <h3 class="project-title">Akıllı Ev Yönetim Sistemi</h3>
-                            <div class="project-links">
-                                <a href="https://github.com/kynux.dev/smart-home" target="_blank" class="project-link"><i class="fab fa-github"></i></a>
-                                <a href="https://github.com/kynux.dev" target="_blank" class="project-link"><i class="fas fa-external-link-alt"></i></a>
+                <?php if (empty($repositories)): ?>
+                    <p class="no-repos" data-aos="fade-up">Hiç repository bulunamadı.</p>
+                <?php else: ?>
+                    <div class="repos-grid" id="repoGrid" data-aos="fade-up">
+                        <?php 
+                        // En fazla 6 repo göster - sayfa performansı için
+                        $display_repos = array_slice($repositories, 0, 6);
+                        foreach ($display_repos as $repo): 
+                            // Fork olan repoları atla
+                            if ($repo['fork']) continue;
+                            
+                            // Dil rengini belirle
+                            $languageColors = [
+                                'JavaScript' => '#f1e05a',
+                                'TypeScript' => '#2b7489',
+                                'HTML' => '#e34c26',
+                                'CSS' => '#563d7c',
+                                'PHP' => '#4F5D95',
+                                'Python' => '#3572A5',
+                                'Java' => '#b07219',
+                                'C#' => '#178600',
+                                'C++' => '#f34b7d',
+                                'Ruby' => '#701516',
+                                'Go' => '#00ADD8',
+                                'Swift' => '#ffac45',
+                                'Kotlin' => '#F18E33',
+                                'Rust' => '#dea584',
+                            ];
+                            
+                            $languageColor = isset($languageColors[$repo['language']]) 
+                                            ? $languageColors[$repo['language']] 
+                                            : '#bbbbbb';
+                        ?>
+                        <div class="repo-card" data-aos="zoom-in-up">
+                            <div class="repo-name">
+                                <a href="<?php echo htmlspecialchars($repo['html_url']); ?>" target="_blank">
+                                    <?php echo htmlspecialchars($repo['name']); ?>
+                                </a>
+                            </div>
+                            
+                            <?php if (!empty($repo['description'])): ?>
+                                <div class="repo-description">
+                                    <?php echo htmlspecialchars($repo['description']); ?>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <div class="repo-stats">
+                                <span>
+                                    <i class="fas fa-star"></i>
+                                    <?php echo $repo['stargazers_count']; ?>
+                                </span>
+                                <span>
+                                    <i class="fas fa-code-branch"></i>
+                                    <?php echo $repo['forks_count']; ?>
+                                </span>
+                                <span>
+                                    <i class="fas fa-eye"></i>
+                                    <?php echo $repo['watchers_count']; ?>
+                                </span>
+                            </div>
+                            
+                            <?php if (!empty($repo['language'])): ?>
+                                <div class="repo-language">
+                                    <span class="language-color" style="background-color: <?php echo $languageColor; ?>"></span>
+                                    <?php echo htmlspecialchars($repo['language']); ?>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <div class="repo-dates">
+                                <span>
+                                    <i class="fas fa-calendar-plus"></i> 
+                                    <?php echo formatDate($repo['created_at']); ?>
+                                </span>
+                                <span>
+                                    <i class="fas fa-sync-alt"></i> 
+                                    <?php echo formatDate($repo['updated_at']); ?>
+                                </span>
                             </div>
                         </div>
-                        <p class="project-desc">IoT cihazlarını kontrol etmek için mobil uygulama. Aydınlatma, sıcaklık ve güvenlik sistemlerini yönetir.</p>
-                        <div class="project-tech">
-                            <span class="tech-tag">Flutter</span>
-                            <span class="tech-tag">Firebase</span>
-                            <span class="tech-tag">MQTT</span>
-                            <span class="tech-tag">Raspberry Pi</span>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                </div>
-                
-                <div class="project-card" data-aos="zoom-in-up" data-aos-delay="600">
-                    <div class="project-content">
-                        <div class="project-header">
-                            <h3 class="project-title">Yapay Zeka Sohbet Botu</h3>
-                            <div class="project-links">
-                                <a href="https://github.com/kynux.dev/ai-chatbot" target="_blank" class="project-link"><i class="fab fa-github"></i></a>
-                                <a href="https://github.com/kynux.dev" target="_blank" class="project-link"><i class="fas fa-external-link-alt"></i></a>
-                            </div>
-                        </div>
-                        <p class="project-desc">Doğal dil işleme kullanan interaktif chatbot. Müşteri hizmetleri ve bilgi edinme amaçlı kullanılabilir.</p>
-                        <div class="project-tech">
-                            <span class="tech-tag">Python</span>
-                            <span class="tech-tag">TensorFlow</span>
-                            <span class="tech-tag">NLP</span>
-                            <span class="tech-tag">AWS Lambda</span>
-                        </div>
+                    
+                    <?php if (count($repositories) > 6): ?>
+                    <div class="more-repos-link" data-aos="fade-up">
+                        <a href="https://github.com/<?php echo htmlspecialchars($github_username); ?>?tab=repositories" class="btn btn-outline" target="_blank">
+                            <i class="fab fa-github"></i> Tüm Projeleri GitHub'da Görüntüle
+                        </a>
                     </div>
-                </div>
-            </div>
+                    <?php endif; ?>
+                <?php endif; ?>
+            <?php endif; ?>
+            
         </div>
     </section>
 
@@ -604,8 +759,7 @@ API KURULUM BİLGİSİ:
                     </div>
                 </div>
                 
-                <?php 
-                // CSRF token oluştur
+                <?php
                 session_start();
                 if (empty($_SESSION['csrf_token'])) {
                     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -641,8 +795,7 @@ API KURULUM BİLGİSİ:
                     <span>Kynux<span class="highlight">Dev</span></span>
                 </div>
                 
-                <div class="footer-nav">
-                    <a href="#home">Ana Sayfa</a>
+<div class="footer-nav">
                     <a href="#platforms">Platformlar</a>
                     <a href="#skills">Yetenekler</a>
                     <a href="#projects">Projeler</a>
@@ -658,6 +811,7 @@ API KURULUM BİLGİSİ:
             
             <div class="footer-bottom" data-aos="fade-up">
                 <p>&copy; 2025 kynux.dev. Tüm hakları saklıdır.</p>
+                <p class="license">BSD 3-Clause "New" or "Revised" License ile lisanslanmıştır</p>
                 <p class="credit">Tasarım ile <i class="fas fa-heart" style="color: #ef4444; font-size: 0.8rem;"></i> ve <i class="fas fa-code" style="color: var(--primary-color); font-size: 0.8rem;"></i> arasında...</p>
             </div>
         </div>
@@ -667,11 +821,56 @@ API KURULUM BİLGİSİ:
         <i class="fas fa-arrow-up"></i>
     </div>
 
-    <!-- AOS Kütüphanesi - Sayfa kaydırma animasyonları için -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script src="particles.js"></script>
     <script src="script.js"></script>
     
-    <!-- Sayfa geçiş efekti için arka plan elementi -->
     <div class="page-transition-overlay"></div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Neon efektleri için elementleri seç
+        const neonElements = document.querySelectorAll('.repo-card, .profile-image, .btn-primary, .category-icon');
+        
+        // Her element için rastgele parıldama animasyonu ekle
+        neonElements.forEach(element => {
+            // Rastgele parıldama süresi (3-7 saniye arası)
+            const randomDuration = Math.random() * 4 + 3;
+            // Rastgele başlangıç gecikmesi (0-5 saniye arası)
+            const randomDelay = Math.random() * 5;
+            
+            element.style.animation = `glow ${randomDuration}s ease-in-out ${randomDelay}s infinite alternate`;
+        });
+        
+        // Interaktif profil resmi efekti
+        const profileImage = document.querySelector('.profile-image');
+        if (profileImage) {
+            profileImage.addEventListener('mousemove', function(e) {
+                const bounds = this.getBoundingClientRect();
+                const mouseX = e.clientX - bounds.left;
+                const mouseY = e.clientY - bounds.top;
+                const centerX = bounds.width / 2;
+                const centerY = bounds.height / 2;
+                
+                // İmlecin pozisyonuna göre 3D döndürme hesapla
+                const rotateY = ((mouseX - centerX) / centerX) * 15;
+                const rotateX = ((centerY - mouseY) / centerY) * 15;
+                
+                // Dönme efektini uygula
+                this.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale(1.1)`;
+                this.style.boxShadow = `
+                    ${rotateY / 3}px ${rotateX / 3}px 15px rgba(59, 130, 246, 0.6),
+                    0 0 30px rgba(59, 130, 246, 0.4)
+                `;
+            });
+            
+            profileImage.addEventListener('mouseleave', function() {
+                // Mouse ayrıldığında normal görünüme geri dön
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            });
+        }
+    });
+    </script>
 </body>
 </html>

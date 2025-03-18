@@ -1,0 +1,20 @@
+{
+  "name": "kynux-discord-status-bot",
+  "version": "1.1.0",
+  "description": "Kynux.dev Discord kullanıcı durumu takip botu",
+  "main": "start-discord-bot.js",
+  "scripts": {
+    "start": "node start-discord-bot.js",
+    "dev": "nodemon start-discord-bot.js",
+    "update": "node discord-api.js"
+  },
+  "author": "kynux.dev",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

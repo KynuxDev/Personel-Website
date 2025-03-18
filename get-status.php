@@ -15,37 +15,48 @@ function logError($message) {
 
 // Discord API fonksiyonu - PHP ile Discord API'den veri alma
 function getDiscordStatus() {
-    $status_file = 'logs/discord_status.json';
+    // Yeni klasör yapısında Discord durum dosyasının yolları
+    $status_paths = [
+        __DIR__ . '/discord-bot/logs/discord_status.json', // Önce Discord bot klasöründe ara
+        __DIR__ . '/logs/discord_status.json',             // Sonra ana klasörde ara
+    ];
     
-    // Doğrudan Discord durum dosyasını oku
-    $status_file = __DIR__ . '/logs/discord_status.json';
+    // Durum dosyasını bul
+    $status_file = null;
+    $api_data = null;
     
-    // Dosya varsa doğrudan okuyalım
-    if (file_exists($status_file)) {
-        try {
-            $status_content = file_get_contents($status_file);
+    foreach ($status_paths as $path) {
+        if (file_exists($path)) {
+            logError("Discord durum dosyası bulundu: " . $path);
+            $status_file = $path;
             
-            if ($status_content === false) {
-                logError("discord-status.json dosyası okunamadı");
-                throw new Exception("JSON dosyası okuma hatası");
+            try {
+                $status_content = file_get_contents($status_file);
+                
+                if ($status_content === false) {
+                    logError("Discord durum dosyası okunamadı: " . $path);
+                    continue; // Diğer dosyayı deneyelim
+                }
+                
+                // JSON verisi doğru alınmazsa hata log'u oluştur
+                $api_data = json_decode($status_content, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    logError("Discord JSON ayrıştırma hatası: " . json_last_error_msg() . " - Dosya: " . $path);
+                    continue; // Diğer dosyayı deneyelim
+                }
+                
+                // Veri bulundu ve doğru formatta, döngüden çık
+                if ($api_data && isset($api_data['status'])) {
+                    break;
+                }
+            } catch (Exception $e) {
+                logError("Discord dosya okuma hatası: " . $e->getMessage() . " - Dosya: " . $path);
+                continue; // Diğer dosyayı deneyelim
             }
-            
-            // JSON verisi doğru alınmazsa hata log'u oluştur
-            $api_data = json_decode($status_content, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                logError("Discord JSON ayrıştırma hatası: " . json_last_error_msg());
-                throw new Exception("JSON ayrıştırma hatası");
-            }
-        } catch (Exception $e) {
-            logError("Discord dosya okuma hatası: " . $e->getMessage());
-            $api_data = null;
         }
-    } else {
-        logError("Discord durum dosyası bulunamadı: " . $status_file);
-        $api_data = null;
     }
     
-    // API'den veri alınabildiyse kullan
+    // Eğer veri bulunduysa kullan
     if ($api_data && isset($api_data['status'])) {
         return [
             'status' => $api_data['status'],
@@ -55,27 +66,6 @@ function getDiscordStatus() {
             'discriminator' => $api_data['discriminator'] ?? '0000',
             'last_updated' => isset($api_data['last_updated']) ? date('H:i:s', strtotime($api_data['last_updated'])) : date('H:i:s')
         ];
-    }
-    
-    // API'den veri alınamadıysa status dosyasını kontrol et
-    if (file_exists($status_file)) {
-        try {
-            $status_content = file_get_contents($status_file);
-            $status_data = json_decode($status_content, true);
-            
-            if ($status_data && isset($status_data['status'])) {
-                return [
-                    'status' => $status_data['status'],
-                    'game' => $status_data['game'] ?? '',
-                    'has_game' => $status_data['has_game'] ?? false,
-                    'username' => $status_data['username'] ?? 'kynux.dev',
-                    'discriminator' => $status_data['discriminator'] ?? '0000',
-                    'last_updated' => isset($status_data['last_updated']) ? date('H:i:s', strtotime($status_data['last_updated'])) : date('H:i:s')
-                ];
-            }
-        } catch (Exception $e) {
-            file_put_contents('logs/discord_error.log', date('Y-m-d H:i:s') . " - JSON Error: " . $e->getMessage() . "\n", FILE_APPEND);
-        }
     }
     
     // Log oluştur

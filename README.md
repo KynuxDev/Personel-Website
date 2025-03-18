@@ -1,104 +1,128 @@
-# Discord ve Spotify Entegrasyonu
+# KynuxDev Kişisel Tanıtım Sitesi
 
-Bu proje, kişisel web sitenizde Discord durumunuzu ve Spotify'da dinlediğiniz müzikleri göstermenizi sağlayan bir PHP entegrasyonudur.
+Bu repo, kynux.dev kişisel tanıtım web sitesinin kaynak kodlarını içerir. Modern ve interaktif web teknolojileri kullanılarak geliştirilmiş profesyonel bir kişisel portföy sitesidir.
 
-## Özellikler
+![PHP](https://img.shields.io/badge/PHP-7.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![CSS3](https://img.shields.io/badge/CSS3-Modern-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-Semantic-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 
-### Discord Entegrasyonu
+## 📋 Özellikler
 
-- 🔄 Node.js Discord botu yerine tamamen PHP tabanlı çözüm
-- 👤 Discord kullanıcı durumunu (çevrimiçi, rahatsız etmeyin, boşta, çevrimdışı) takip etme
-- 🎮 Oynadığınız oyunların durumunu görüntüleme
-- ⏱️ Zamanlanmış görevler ile otomatik durum güncellemesi
+- **Dinamik GitHub Portföyü**: GitHub API entegrasyonu ile güncel repo verilerini gösterir
+- **Platform Durum Gösterimleri**: Discord ve Spotify hesap durumlarını gerçek zamanlı gösterir
+- **Modern UI/UX**: Animasyonlar, interaktif elementler ve duyarlı tasarım
+- **SEO Optimizasyonu**: Arama motorları için optimize edilmiş yapı
+- **Çok Dilli Destek**: Türkçe ve İngilizce dil seçenekleri
+- **Beceri Gösterimi**: Kategorilere ayrılmış beceri ve yeteneklerin görsel gösterimi
+- **İletişim Formu**: Güvenli ve CSRF korumalı iletişim formu
 
-### Spotify Entegrasyonu
+## 🔧 Kurulum
 
-- 🎵 Şu anda dinlediğiniz şarkıyı gösterme
-- 🎧 Şarkı bilgilerini ve albüm kapağını görüntüleme
-- 📊 Şarkı ilerleme durumunu gösterme
-- 🔑 Kolay kurulum arayüzü ile hesap bağlama
+```bash
+# Repoyu klonlayın
+git clone https://github.com/kynux.dev/kynux-portfolio.git
 
-## Kurulum
+# Klasöre gidin
+cd kynux-portfolio
 
-### Gereksinimler
+# Gerekliyse bağımlılıkları yükleyin
+npm install
+```
 
-- PHP 7.4 veya üstü
-- XAMPP, WAMP veya benzeri bir web sunucusu
-- curl PHP eklentisi
-- Discord Bot Token
-- Spotify Developer Hesabı (isteğe bağlı)
+## 🚀 Kullanım
 
-### Discord Kurulumu
+1. Dosyaları web sunucu dizininize (ör. htdocs, www) yükleyin
+2. `.env` dosyasını ana dizinde oluşturun:
 
-1. Discord Developer Portal'dan bir bot oluşturun ve token'ı alın
-2. `discord-api.php` dosyasında bot token ve kullanıcı ID değerlerinizi ayarlayın:
-   ```php
-   $discord_bot_token = 'BURAYA_DISCORD_BOT_TOKEN_YAZIN';
-   $user_id_to_track = 'BURAYA_DISCORD_KULLANICI_ID_YAZIN';
-   ```
-3. Düzenli güncellemeler için `discord-update-cron.php` dosyasını zamanlanmış görev olarak ayarlayın:
-   - Windows: Task Scheduler ile her dakika `C:\xampp\php\php.exe -f C:\xampp\htdocs\discord-update-cron.php` komutunu çalıştırın
-   - Linux: `crontab -e` ile `* * * * * php /path/to/discord-update-cron.php` satırını ekleyin
+```
+# GitHub API
+GITHUB_TOKEN=github_token_buraya
 
-### Spotify Kurulumu
+# Discord Bot
+DISCORD_BOT_TOKEN=discord_token_buraya
+DISCORD_USER_ID=discord_user_id_buraya
 
-1. `spotify-setup.php` sayfasını ziyaret edin ve adımları takip edin:
-   - Spotify Developer Dashboard'dan bir uygulama oluşturun
-   - Client ID ve Client Secret bilgilerini girin
-   - "Spotify Hesabını Bağla" butonuyla hesabınızı yetkilendirin
+# Spotify API
+SPOTIFY_CLIENT_ID=spotify_client_id_buraya
+SPOTIFY_CLIENT_SECRET=spotify_client_secret_buraya
+```
 
-## Dosya Yapısı
+3. Web sunucunuzu başlatın ve tarayıcıdan erişin
 
-### Discord Dosyaları
-- `discord-api.php`: Discord API ile iletişim kuran ana PHP dosyası
-- `discord-update-cron.php`: Zamanlanmış görev olarak çalıştırılacak güncelleme scripti
-- `discord-help.php`: Discord entegrasyonu için yardım sayfası
+## 📁 Proje Yapısı
 
-### Spotify Dosyaları
-- `spotify-setup.php`: Spotify hesabınızı bağlamak için kurulum arayüzü
-- `spotify-auth.php`: Spotify OAuth yetkilendirme başlatıcı
-- `spotify-callback.php`: Spotify OAuth callback handler
+```
+kynux-portfolio/
+│
+├── index.php                # Ana sayfa
+├── style.css                # Ana stil dosyası
+├── script.js                # Ana JavaScript dosyası
+├── particles.js             # Arkaplan efektleri
+├── modern-portfolio.css     # Alternatif modern stil
+│
+├── api-status.php           # Platform durumları API
+├── get-status.php           # Durum bilgisi alma 
+├── github-portfolio.php     # GitHub portföy oluşturma
+├── process-form.php         # İletişim formu işleme
+├── spotify-callback.php     # Spotify oturum yakalama
+├── spotify-auth.php         # Spotify yetkilendirme
+│
+├── discord-bot/             # Discord bot entegrasyonu
+│   ├── discord-bot.js       # Discord bot kodu
+│   ├── discord-api.php      # Discord API entegrasyonu
+│   ├── README.md            # Bot dökümantasyonu
+│   └── ...                  # Diğer bot dosyaları
+│
+└── logs/                    # Log ve durum dosyaları
+    ├── discord_status.json  # Discord durum bilgileri
+    └── ...                  # Diğer log dosyaları
+```
 
-### Ortak Dosyalar
-- `get-status.php`: Discord ve Spotify durum bilgilerini JSON olarak döndüren API
-- `index.php`: Ana web sayfası
-- `style.css`: Stil dosyası
-- `script.js`: JavaScript dosyası
+## 🔄 Discord Bot Entegrasyonu
 
-## Kullanım
+Discord bot entegrasyonu, kullanıcının Discord platformundaki durumunu (çevrimiçi, boşta, rahatsız etmeyin, çevrimdışı) ve oynadığı oyun/aktivite bilgilerini takip ederek web sitesinde gösterir.
 
-1. Web sitenizi ziyaret edin
-2. Discord durum kartınız otomatik olarak güncellenecektir
-3. Spotify hesabınızı bağladıysanız, dinlediğiniz müzik de görüntülenecektir
-4. Durum bilgileri her 10 saniyede bir güncellenir
+Bot ile ilgili detaylı bilgi için [discord-bot/README.md](discord-bot/README.md) dosyasına bakın.
 
-## Düzenli Güncelleme
+## 🎵 Spotify Entegrasyonu
 
-Discord bot'u yerine, PHP entegrasyonu zamanlanmış görevler ile çalışır:
+Spotify entegrasyonu, kullanıcının o anda Spotify'da dinlediği müzik bilgilerini (şarkı adı, sanatçı, albüm kapağı) gerçek zamanlı olarak web sitesinde gösterir.
 
-1. `discord-update-cron.php` dosyası düzenli olarak (örn. her dakika) çalıştırılır
-2. Bu dosya Discord API'sine istek yaparak kullanıcı bilgilerini alır
-3. Alınan bilgiler JSON formatında kaydedilir
-4. Web sayfası bu dosyadan verileri okuyarak görüntüler
+Kurulum için:
 
-## Sorun Giderme
+1. [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/) üzerinden bir uygulama oluşturun
+2. Redirect URI olarak `https://your-site.com/spotify-callback.php` ekleyin
+3. Client ID ve Client Secret bilgilerini `.env` dosyasına ekleyin
+4. Web sitenizi ziyaret edin ve Spotify yetkilendirmesini tamamlayın
 
-### Discord Sorunları
+## 🖥️ GitHub Portföy Entegrasyonu
 
-- **Durum güncellenmiyor:** Log dosyalarını kontrol edin (`logs/discord_debug.log` ve `logs/cron_log.txt`)
-- **API Hataları:** Discord token'in doğru ve geçerli olduğundan emin olun
-- **Yetkilendirme Hatası:** Bot'unuzun yeterli izinlere sahip olduğunu kontrol edin
+GitHub entegrasyonu, belirtilen GitHub kullanıcısının repolarını çeker ve portföy bölümünde gösterir. Repolar yıldız sayısı, güncelleme tarihi veya oluşturma tarihine göre sıralanabilir.
 
-### Spotify Sorunları
+## 📄 Lisans
 
-- **Bağlantı Hatası:** Spotify Developer Dashboard'da Redirect URI'nin doğru olduğundan emin olun
-- **Müzik Bilgisi Görünmüyor:** Spotify'da müzik çalarken "Web'de Paylaş" seçeneğinin açık olduğundan emin olun
-- **Token Hatası:** `spotify-setup.php` sayfasından hesabınızı yeniden bağlayın
+Bu proje BSD 3-Clause "New" or "Revised" lisansı altında lisanslanmıştır. Daha fazla bilgi için [LICENSE](LICENSE) dosyasına bakın.
 
-## Discord Bot vs PHP Entegrasyonu
+## ✨ Özelleştirme
 
-Bu proje, Node.js tabanlı discord-bot.js yerine PHP kullanmaktadır. Avantajları:
+Site görünümünü veya davranışını özelleştirmek için:
 
-- **Basitlik:** Node.js kurulumu ve npm paketleri gerektirmez
-- **Entegrasyon:** Web sitenizle aynı teknoloji yığını
-- **Kaynak Kullanımı:** Sürekli çalışan bir bot yerine, periyodik olarak tetiklenen PHP script'i daha az kaynak kullanır
+- `style.css` veya `modern-portfolio.css` dosyalarını düzenleyin
+- `script.js` dosyasında JavaScript davranışlarını değiştirin
+- `particles.js` dosyasında arkaplan parçacık efektlerini ayarlayın
+- `index.php` dosyasında HTML yapısını değiştirin
+
+## 🤝 Katkıda Bulunma
+
+Katkılarınızı memnuniyetle karşılıyoruz! Lütfen:
+
+1. Projeyi fork edin
+2. Yeni özellik dalı oluşturun (`git checkout -b yeni-ozellik`)
+3. Değişikliklerinizi commit edin (`git commit -am 'Yeni özellik: özellik açıklaması'`)
+4. Dalınızı push edin (`git push origin yeni-ozellik`)
+5. Pull Request oluşturun
+
+---
+
+Geliştirici: [KynuxDev](https://github.com/kynux.dev) | © 2025 Tüm hakları saklıdır.

@@ -118,8 +118,6 @@ document.addEventListener('DOMContentLoaded', function() {
         this.style.boxShadow = '';
     }
     
-    function createCursorEffect() {
-    }
     
     function initFloatingElements() {
         const heroTitle = document.querySelector('.hero .title');
@@ -230,6 +228,23 @@ document.addEventListener('DOMContentLoaded', function() {
             createParticleEffect(card);
         });
         
+        // GitHub kartları için özel efektler
+        document.querySelectorAll('.repo-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-8px) perspective(1000px) rotateX(2deg) rotateY(2deg)';
+                card.style.boxShadow = '0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.1)';
+                const colorBar = card.querySelector('.repo-card::before');
+                if (colorBar) colorBar.style.transform = 'scaleX(1)';
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+                card.style.boxShadow = '';
+                const colorBar = card.querySelector('.repo-card::before');
+                if (colorBar) colorBar.style.transform = 'scaleX(0)';
+            });
+        });
+        
         animateMusicBars();
         
         startRealtimeUpdates();
@@ -328,14 +343,12 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('simple-status.php?' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
-                console.log("API yanıtı:", data); // Debug için
                 lastUpdateTime = new Date().getTime();
                 
                 // Discord bilgilerini doğrudan al
                 if (data.discord) {
                     updatePlatformCards(data);
                 } else if (data.error) {
-                    console.error("API hatası:", data.error);
                     // Hata durumunda varsayılan değerleri kullan
                     const defaultStatus = {
                         discord: {status: 'dnd', username: 'kynux.dev', last_updated: new Date().toTimeString().split(' ')[0]},
@@ -346,7 +359,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                console.error("Bağlantı hatası:", error);
                 const defaultStatus = {
                     discord: {status: 'dnd', username: 'kynux.dev', last_updated: new Date().toTimeString().split(' ')[0]},
                     spotify: {is_playing: false},
@@ -703,7 +715,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const footerNav = document.createElement('div');
             footerNav.className = 'footer-nav';
             footerNav.innerHTML = `
-                <a href="#home">Ana Sayfa</a>
                 <a href="#platforms">Platformlar</a>
                 <a href="#skills">Yetenekler</a>
                 <a href="#projects">Projeler</a>
