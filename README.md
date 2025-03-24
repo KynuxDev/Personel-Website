@@ -21,10 +21,10 @@ Bu repo, kynux.dev kişisel tanıtım web sitesinin kaynak kodlarını içerir. 
 
 ```bash
 # Repoyu klonlayın
-git clone https://github.com/kynux.dev/kynux-portfolio.git
+git clone https://github.com/kynuxdev/Personel-Website.git
 
 # Klasöre gidin
-cd kynux-portfolio
+cd Personel-Website
 
 # Gerekliyse bağımlılıkları yükleyin
 npm install
