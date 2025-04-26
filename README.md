@@ -1,4 +1,4 @@
-# 🚀 KynuxDev Kişisel Portföy v3.5.2
+# 🚀 KynuxDev Kişisel Portföy v3.5.1
 
 <div align="center">
   
@@ -173,9 +173,9 @@ Spotify bağlantısında bir sorun yaşarsanız:
 
 ### 4. Discord Entegrasyonu
 
-Discord durumunuzu göstermek için iki seçenek bulunmaktadır:
+Discord durumunuzu göstermek için Lanyard API kullanılmaktadır:
 
-#### 4.1. Lanyard API İle Entegrasyon (Önerilen)
+#### 4.1. Lanyard API İle Entegrasyon
 
 [Lanyard API](https://github.com/Phineas/lanyard), Discord durumunuzu kolayca göstermenize olanak tanır ve herhangi bir bot gerektirmez.
 
@@ -185,11 +185,15 @@ Discord durumunuzu göstermek için iki seçenek bulunmaktadır:
    
 2. `get-status.php` dosyasındaki Discord kullanıcı ID'nizi güncelleyin:
    ```php
-   // Discord user ID
-   $user_id = 'DISCORD_KULLANICI_ID_BURAYA';
+   $user_id = getenv('DISCORD_USER_ID') ?: 'DISCORD_KULLANICI_ID_BURAYA';
    ```
 
-3. [Lanyard Discord sunucusuna](https://discord.gg/lanyard) katılın (API'yi kullanabilmek için)
+3. `.env` dosyanıza Discord ID'nizi ekleyin:
+   ```env
+   DISCORD_USER_ID=123456789012345678
+   ```
+
+4. [Lanyard Discord sunucusuna](https://discord.gg/lanyard) katılın (API'yi kullanabilmek için)
 
 ### 5. GitHub Portföy Entegrasyonu
 
@@ -221,7 +225,13 @@ kynux-portfolio/
 │
 ├── process-form.php         # İletişim formu işleme
 ├── github-portfolio.php     # GitHub portföy oluşturma
-││
+│
+├── .env                     # Çevresel değişkenler
+├── .env.example             # Örnek çevresel değişkenler dosyası
+│
+# Not: Discord entegrasyonu, 'discord-bot' klasörü yerine Lanyard API ile
+# doğrudan get-status.php içinde gerçekleştirilmektedir
+│
 └── logs/                    # Log ve durum dosyaları
 ```
 
@@ -295,7 +305,7 @@ Sorularınız veya önerileriniz mi var? Benimle iletişime geçin:
 
 - GitHub: [KynuxDev](https://github.com/kynuxdev)
 - Discord: [@kynux_dev](https://discord.com/channels/@me/1244181502795976775)
-- Web: [kynux.dev](https://kynux.cloud)
+- Web: [kynux.cloud](https://kynux.cloud)
 
 ---
 
