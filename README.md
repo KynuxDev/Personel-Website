@@ -191,18 +191,6 @@ Discord durumunuzu göstermek için iki seçenek bulunmaktadır:
 
 3. [Lanyard Discord sunucusuna](https://discord.gg/lanyard) katılın (API'yi kullanabilmek için)
 
-#### 4.2. Discord Bot İle Entegrasyon (İsteğe Bağlı - Gelişmiş)
-
-Daha fazla özelleştirme isterseniz, kendi Discord bot'unuzu kullanabilirsiniz:
-
-1. [Discord Developer Portal](https://discord.com/developers/applications)'da yeni bir uygulama oluşturun
-2. Bot sekmesine geçin ve "Add Bot" butonuna tıklayın
-3. Bot tokeninizi `.env` dosyasına ekleyin:
-   ```env
-   DISCORD_BOT_TOKEN=your_bot_token_here
-   ```
-4. Discord-bot klasöründeki kurulum adımlarını takip edin
-
 ### 5. GitHub Portföy Entegrasyonu
 
 GitHub projelerinizi göstermek için:
@@ -233,11 +221,7 @@ kynux-portfolio/
 │
 ├── process-form.php         # İletişim formu işleme
 ├── github-portfolio.php     # GitHub portföy oluşturma
-│
-├── discord-bot/             # Discord bot entegrasyonu (isteğe bağlı)
-│   ├── discord-api.php      # Discord API entegrasyonu
-│   └── discord-update-cron.php # Durum güncelleme
-│
+││
 └── logs/                    # Log ve durum dosyaları
 ```
 
