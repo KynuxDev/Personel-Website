@@ -1,10 +1,5 @@
 <?php
-/**
- * Kynux.dev Sistem Entegrasyon Testi
- * Bu script, Discord Bot ve diğer sistemlerin doğru yapılandırıldığını ve çalıştığını test eder.
- */
 
-// Başlık ve yazdırma fonksiyonları
 function printHeader($title) {
     echo "\n\033[1;36m======== $title ========\033[0m\n";
 }
@@ -21,7 +16,6 @@ function printInfo($message) {
     echo "\033[0;33m→ $message\033[0m\n";
 }
 
-// Başlangıç
 echo "\033[1;35m\n";
 echo "==================================================\n";
 echo "    KYNUX.DEV SİSTEM ENTEGRASYON TESTİ\n";
@@ -30,7 +24,6 @@ echo "\033[0m\n";
 
 echo "Test başlangıç zamanı: " . date('Y-m-d H:i:s') . "\n";
 
-// 1. Dosya yapısını kontrol et
 printHeader("DOSYA YAPISI KONTROLÜ");
 
 $requiredFiles = [
@@ -61,7 +54,6 @@ if (count($missingFiles) > 0) {
     printSuccess("Tüm gerekli dosyalar mevcut.");
 }
 
-// 2. Klasör yapısını kontrol et
 printHeader("KLASÖR YAPISI KONTROLÜ");
 
 $requiredDirs = [
@@ -76,7 +68,6 @@ foreach ($requiredDirs as $dir => $description) {
         printSuccess("$dir: $description - MEVCUT");
     } else {
         printError("$dir: $description - BULUNAMADI");
-        // Eksik log klasörlerini oluştur
         if (strpos($dir, 'logs') !== false) {
             printInfo("$dir klasörü oluşturuluyor...");
             mkdir($dir, 0755, true);
@@ -98,7 +89,6 @@ if (count($missingDirs) > 0) {
     printSuccess("Tüm gerekli klasörler mevcut.");
 }
 
-// 3. Discord Durum Dosyasını Kontrol Et
 printHeader("DISCORD DURUM KONTROLÜ");
 
 $discordStatusPaths = [
@@ -112,7 +102,6 @@ foreach ($discordStatusPaths as $path) {
         $statusFileFound = true;
         printSuccess("Discord durum dosyası bulundu: $path");
         
-        // Dosyanın içeriğini kontrol et
         $content = file_get_contents($path);
         $statusData = json_decode($content, true);
         
@@ -159,13 +148,11 @@ if (!$statusFileFound) {
     }
 }
 
-// 4. get-status.php API'sini Test Et
 printHeader("API TESTİ");
 
 try {
     printInfo("get-status.php API'si test ediliyor...");
     
-    // API yanıtını al
     $apiUrl = "http://" . $_SERVER['HTTP_HOST'] . "/get-status.php";
     $context = stream_context_create([
         'http' => [
@@ -194,15 +181,12 @@ try {
     printError("API testi sırasında hata: " . $e->getMessage());
 }
 
-// 5. Özet
 printHeader("TEST SONUÇLARI");
 
-// Test sonuçlarını göster
 echo "\nTüm kontroller tamamlandı.\n";
 echo "Eksik dosyalar: " . (count($missingFiles) > 0 ? implode(", ", $missingFiles) : "Yok") . "\n";
 echo "Eksik klasörler: " . (count($missingDirs) > 0 ? implode(", ", $missingDirs) : "Yok") . "\n\n";
 
-// Konfigürasyon ipuçları
 printHeader("KONFİGÜRASYON İPUÇLARI");
 
 echo "1. Discord bot'u çalıştırmak için:\n";

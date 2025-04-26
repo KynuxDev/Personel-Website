@@ -1,5 +1,4 @@
 <?php
-// Sayfa başlığı ve meta verileri
 $title = "Discord PHP Entegrasyonu Yardım";
 $description = "Discord durumunuzu PHP ile takip etme rehberi";
 ?>

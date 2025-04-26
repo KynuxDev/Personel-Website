@@ -1,8 +1,6 @@
 <?php
-// Spotify OAuth Callback Handler
 session_start();
 
-// Spotify API bilgilerini config dosyasından oku
 $config_file = 'spotify_config.json';
 $client_id = '';
 $client_secret = '';
@@ -20,25 +18,17 @@ if (empty($client_id) || empty($client_secret)) {
     $message = 'Client ID veya Client Secret bulunamadı. Lütfen Spotify ayarlarını kontrol edin.';
     $success = false;
 }
-
-// Callback URL (Bu URL, Spotify Developer Dashboard'da ayarladığınız URL ile aynı olmalı)
 $redirect_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}/spotify-callback.php";
-
-// Logs klasörünü kontrol et
 if (!file_exists('logs')) {
     mkdir('logs', 0755, true);
 }
-
-// Hata veya başarı mesajları için
 $message = "";
 $success = false;
 
 try {
-    // Spotify'dan dönen authorization code'u kontrol et
     if (isset($_GET['code'])) {
         $code = $_GET['code'];
         
-        // Token almak için API isteği yap
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://accounts.spotify.com/api/token");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -54,16 +44,13 @@ try {
         $response = curl_exec($ch);
         curl_close($ch);
         
-        // API yanıtını kaydet
         file_put_contents('logs/spotify_token_response.log', date('Y-m-d H:i:s') . " - Response: " . $response . "\n", FILE_APPEND);
         
         $data = json_decode($response, true);
         
-        // Başarılı bir şekilde token alındı mı kontrol et
         if (isset($data['refresh_token'])) {
             $refresh_token = $data['refresh_token'];
             
-            // Config dosyasını oluştur veya güncelle
             $config_file = 'spotify_config.json';
             $config_data = [];
             

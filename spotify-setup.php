@@ -2,8 +2,6 @@
 session_start();
 $title = "Spotify Hesabı Kurulumu";
 $description = "Spotify hesabınızı web sitenize bağlayın";
-
-// Config dosyasını kontrol et
 $config_file = 'spotify_config.json';
 $connected = false;
 $refresh_token = '';
@@ -15,8 +13,6 @@ if (file_exists($config_file)) {
         $refresh_token = $config_data['refresh_token'];
     }
 }
-
-// Form gönderildi mi kontrol et
 $message = '';
 $status = '';
 
@@ -24,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
     if ($action === 'save_credentials') {
-        // API bilgilerini kaydet
         $client_id = trim($_POST['client_id'] ?? '');
         $client_secret = trim($_POST['client_secret'] ?? '');
         
@@ -32,32 +27,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = 'Client ID ve Client Secret zorunludur.';
             $status = 'error';
         } else {
-            // Config dosyasını güncelle
             $config_data = [
                 'client_id' => $client_id,
                 'client_secret' => $client_secret,
                 'updated_at' => date('Y-m-d H:i:s')
             ];
-            
-            // Eğer refresh token zaten varsa, koru
             if ($connected && $refresh_token) {
                 $config_data['refresh_token'] = $refresh_token;
             }
-            
             file_put_contents($config_file, json_encode($config_data, JSON_PRETTY_PRINT));
             
             $message = 'Spotify API bilgileri başarıyla kaydedildi!';
             $status = 'success';
-            
-            // Sayfayı yeniden yükle
             header('Location: ' . $_SERVER['PHP_SELF'] . '?saved=1');
             exit;
         }
     } elseif ($action === 'disconnect') {
-        // Bağlantıyı kes
         if (file_exists($config_file)) {
             $config_data = json_decode(file_get_contents($config_file), true);
-            // Refresh token'ı kaldır
             if (isset($config_data['refresh_token'])) {
                 unset($config_data['refresh_token']);
                 file_put_contents($config_file, json_encode($config_data, JSON_PRETTY_PRINT));
@@ -67,14 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = 'Spotify hesabınız başarıyla bağlantısı kesildi!';
         $status = 'success';
         $connected = false;
-        
-        // Sayfayı yeniden yükle
         header('Location: ' . $_SERVER['PHP_SELF'] . '?disconnected=1');
         exit;
     }
 }
 
-// URL parametrelerinden mesaj kontrolü
 if (isset($_GET['saved'])) {
     $message = 'Spotify API bilgileri başarıyla kaydedildi!';
     $status = 'success';
@@ -87,7 +71,6 @@ if (isset($_GET['saved'])) {
     $connected = true;
 }
 
-// API bilgilerini al
 $client_id = '';
 $client_secret = '';
 

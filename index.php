@@ -77,13 +77,11 @@ function getGithubUserInfo($username) {
 }
 
 function getDiscordStatus() {
-    // Yeni klasör yapısında Discord durum dosyasının yolları
     $status_paths = [
-        'discord-bot/logs/discord_status.json', // Önce Discord bot klasöründe ara
-        'logs/discord_status.json',             // Sonra ana klasörde ara
+        'discord-bot/logs/discord_status.json',
+        'logs/discord_status.json',
     ];
     
-    // Durum dosyasını bul
     $status_file = null;
     foreach ($status_paths as $path) {
         if (file_exists($path)) {
@@ -92,7 +90,6 @@ function getDiscordStatus() {
         }
     }
     
-    // Durum dosyası bulunduysa içeriğini oku
     if ($status_file) {
         try {
             $status_content = file_get_contents($status_file);
@@ -117,7 +114,6 @@ function getDiscordStatus() {
         }
     }
     
-    // Varsayılan durum bilgileri
     return [
         'status' => 'online',
         'game' => '',
@@ -382,9 +378,7 @@ $api_setup_info = "";
     <section id="platforms" class="platforms-section">
         <div class="container">
             <div class="section-header" data-aos="fade-up">
-                <div id="platformDurumumBaslik">
                     <h2>Platform <span class="highlight">Durumum</span></h2>
-                </div>
             </div>
             
             <div class="platforms-grid">
@@ -461,9 +455,7 @@ $api_setup_info = "";
     <section id="skills" class="skills-section">
         <div class="container">
             <div class="section-header" data-aos="fade-up">
-                <div id="beceriSetimBaslik">
                     <h2>Beceri <span class="highlight">Setim</span></h2>
-                </div>
             </div>
             
             <div class="skills-content">
@@ -553,23 +545,17 @@ $api_setup_info = "";
     <section id="projects" class="projects-section">
         <div class="container">
             <div class="section-header" data-aos="fade-up">
-                <div id="githubPortfoyumBaslik">
                     <h2>GitHub <span class="highlight">Portföyüm</span></h2>
-                </div>
             </div>
             
             <?php
-            // GitHub kullanıcı adı
             $github_username = 'KynuxDev';
 
-            // Sıralama seçeneği (varsayılan: güncelleme tarihine göre)
             $sort_by = isset($_GET['sort']) ? $_GET['sort'] : 'updated';
 
-            // Repoları ve kullanıcı bilgilerini çekme
             $repositories = getGithubRepositories($github_username);
             $userInfo = getGithubUserInfo($github_username);
 
-            // Hata kontrolü
             $error = null;
             if (isset($repositories['error'])) {
                 $error = $repositories['error'];
@@ -638,13 +624,10 @@ $api_setup_info = "";
                 <?php else: ?>
                     <div class="repos-grid" id="repoGrid" data-aos="fade-up">
                         <?php 
-                        // En fazla 6 repo göster - sayfa performansı için
                         $display_repos = array_slice($repositories, 0, 6);
                         foreach ($display_repos as $repo): 
-                            // Fork olan repoları atla
                             if ($repo['fork']) continue;
                             
-                            // Dil rengini belirle
                             $languageColors = [
                                 'JavaScript' => '#f1e05a',
                                 'TypeScript' => '#2b7489',
@@ -731,9 +714,7 @@ $api_setup_info = "";
     <section id="contact" class="contact-section">
         <div class="container">
             <div class="section-header" data-aos="fade-up">
-                <div id="iletisimeGecBaslik">
                     <h2>İletişime <span class="highlight">Geç</span></h2>
-                </div>
             </div>
             
             <div class="contact-content">
@@ -760,14 +741,12 @@ $api_setup_info = "";
                 </div>
                 
                 <?php
-                session_start();
                 if (empty($_SESSION['csrf_token'])) {
                     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 }
                 ?>
                 <div class="contact-form" data-aos="fade-up" data-aos-delay="400">
                     <form action="process-form.php" method="POST">
-                        <!-- CSRF koruması -->
                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                         <div class="form-group">
                             <input type="text" id="name" name="name" placeholder="Adınız" required>

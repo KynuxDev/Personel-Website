@@ -1,41 +1,123 @@
-# KynuxDev Kişisel Tanıtım Sitesi
+# 🚀 KynuxDev Kişisel Portföy (EXAMPLE)
 
-Bu repo, kynux.dev kişisel tanıtım web sitesinin kaynak kodlarını içerir. Modern ve interaktif web teknolojileri kullanılarak geliştirilmiş profesyonel bir kişisel portföy sitesidir.
+<div align="center">
+  
+  ![Banner](https://i.ibb.co/JRWpKCcM/s.png)
 
-![PHP](https://img.shields.io/badge/PHP-7.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![CSS3](https://img.shields.io/badge/CSS3-Modern-1572B6?style=for-the-badge&logo=css3&logoColor=white)
-![HTML5](https://img.shields.io/badge/HTML5-Semantic-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+  Modern ve interaktif teknolojilerle geliştirilmiş profesyonel kişisel web sitesi
 
-## 📋 Özellikler
+  [![PHP](https://img.shields.io/badge/PHP-7.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
+  [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+  [![CSS3](https://img.shields.io/badge/CSS3-Modern-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+  [![HTML5](https://img.shields.io/badge/HTML5-Semantic-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
+  
+</div>
 
-- **Dinamik GitHub Portföyü**: GitHub API entegrasyonu ile güncel repo verilerini gösterir
-- **Platform Durum Gösterimleri**: Discord ve Spotify hesap durumlarını gerçek zamanlı gösterir
-- **Modern UI/UX**: Animasyonlar, interaktif elementler ve duyarlı tasarım
-- **SEO Optimizasyonu**: Arama motorları için optimize edilmiş yapı
-- **Çok Dilli Destek**: Türkçe ve İngilizce dil seçenekleri
-- **Beceri Gösterimi**: Kategorilere ayrılmış beceri ve yeteneklerin görsel gösterimi
-- **İletişim Formu**: Güvenli ve CSRF korumalı iletişim formu
+## 📸 Ekran Görüntüleri
 
-## 🔧 Kurulum
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="https://i.ibb.co/V0cJSm5x/image.png" alt="Ana Sayfa" width="400"/>
+        <br/>
+        <i>Ana Sayfa</i>
+      </td>
+      <td align="center">
+        <img src="https://i.ibb.co/HLLFNXmV/image.png" alt="GitHub Portföy" width="400"/>
+        <br/>
+        <i>GitHub Portföy</i>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="https://i.ibb.co/7xHjQk8q/image.png" alt="Platform Durumları" width="400"/>
+        <br/>
+        <i>Platform Durumları</i>
+      </td>
+      <td align="center">
+        <img src="https://i.ibb.co/ds69MW91/image.png" alt="Beceri Setim" width="400"/>
+        <br/>
+        <i>Beceri Setim</i>
+      </td>
+    </tr>
+  </table>
+</div>
+
+## ✨ Özellikler
+
+<div align="center">
+  <table>
+    <tr>
+      <td>
+        <h3>🔄 Gerçek Zamanlı Platform Entegrasyonları</h3>
+        <ul>
+          <li>GitHub Repo verileri otomatik güncellenir</li>
+          <li>Discord aktivite ve durum takibi</li>
+          <li>Spotify dinleme bilgileri canlı gösterimi</li>
+        </ul>
+      </td>
+      <td>
+        <h3>🎨 Modern Tasarım</h3>
+        <ul>
+          <li>Animasyonlar ve geçiş efektleri</li>
+          <li>Responsive tasarım (mobil uyumlu)</li>
+          <li>Dark mode & neon vurgular</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <h3>🔒 Güvenlik</h3>
+        <ul>
+          <li>CSRF korumalı formlar</li>
+          <li>Girdi doğrulama ve temizleme</li>
+          <li>Güvenli API entegrasyonları</li>
+        </ul>
+      </td>
+      <td>
+        <h3>🌐 SEO ve Erişilebilirlik</h3>
+        <ul>
+          <li>Semantik HTML yapısı</li>
+          <li>Arama motoru optimizasyonu</li>
+          <li>Çoklu dil desteği</li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+</div>
+
+## 🛠️ Kurulum
+
+### Gereksinimler
+
+- PHP 7.4 veya daha yüksek
+- Web sunucusu (Apache/Nginx)
+- Composer (önerilen)
+- Discord Bot Token (isteğe bağlı)
+- Spotify Geliştirici Hesabı (isteğe bağlı)
+
+### Hızlı Başlangıç
 
 ```bash
-# Repoyu klonlayın
-git clone https://github.com/kynuxdev/Personel-Website.git
+# Repository'yi klonlayın
+git clone https://github.com/kynuxdev/personal-website.git
 
-# Klasöre gidin
-cd Personel-Website
+# Proje dizinine gidin
+cd personal-website
 
-# Gerekliyse bağımlılıkları yükleyin
-npm install
+# .env.example dosyasını .env olarak kopyalayın
+cp .env.example .env
+
+# .env dosyasını düzenleyin ve API anahtarlarını ekleyin
+nano .env
 ```
 
-## 🚀 Kullanım
+### 🔧 Yapılandırma
 
-1. Dosyaları web sunucu dizininize (ör. htdocs, www) yükleyin
-2. `.env` dosyasını ana dizinde oluşturun:
+`.env` dosyasını ana dizinde oluşturun:
 
-```
+```env
 # GitHub API
 GITHUB_TOKEN=github_token_buraya
 
@@ -48,9 +130,7 @@ SPOTIFY_CLIENT_ID=spotify_client_id_buraya
 SPOTIFY_CLIENT_SECRET=spotify_client_secret_buraya
 ```
 
-3. Web sunucunuzu başlatın ve tarayıcıdan erişin
-
-## 📁 Proje Yapısı
+## 📂 Proje Yapısı
 
 ```
 kynux-portfolio/
@@ -61,68 +141,109 @@ kynux-portfolio/
 ├── particles.js             # Arkaplan efektleri
 ├── modern-portfolio.css     # Alternatif modern stil
 │
-├── api-status.php           # Platform durumları API
-├── get-status.php           # Durum bilgisi alma 
-├── github-portfolio.php     # GitHub portföy oluşturma
-├── process-form.php         # İletişim formu işleme
-├── spotify-callback.php     # Spotify oturum yakalama
-├── spotify-auth.php         # Spotify yetkilendirme
+├── api/                     # API entegrasyonları
+│   ├── api-status.php       # Platform durumları API
+│   ├── get-status.php       # Durum bilgisi alma
+│   └── process-form.php     # İletişim formu işleme
+│
+├── github/                  # GitHub entegrasyonu
+│   └── github-portfolio.php # GitHub portföy oluşturma
+│
+├── spotify/                 # Spotify entegrasyonu
+│   ├── spotify-callback.php # Spotify oturum yakalama
+│   └── spotify-auth.php     # Spotify yetkilendirme
 │
 ├── discord-bot/             # Discord bot entegrasyonu
 │   ├── discord-bot.js       # Discord bot kodu
 │   ├── discord-api.php      # Discord API entegrasyonu
-│   ├── README.md            # Bot dökümantasyonu
-│   └── ...                  # Diğer bot dosyaları
+│   └── README.md            # Bot dökümantasyonu
 │
 └── logs/                    # Log ve durum dosyaları
-    ├── discord_status.json  # Discord durum bilgileri
-    └── ...                  # Diğer log dosyaları
+    └── discord_status.json  # Discord durum bilgileri
 ```
 
-## 🔄 Discord Bot Entegrasyonu
+## 🔌 Platform Entegrasyonları
 
-Discord bot entegrasyonu, kullanıcının Discord platformundaki durumunu (çevrimiçi, boşta, rahatsız etmeyin, çevrimdışı) ve oynadığı oyun/aktivite bilgilerini takip ederek web sitesinde gösterir.
+### 🎮 Discord Entegrasyonu
 
-Bot ile ilgili detaylı bilgi için [discord-bot/README.md](discord-bot/README.md) dosyasına bakın.
+<div align="center">
+  <img src="https://i.ibb.co/4LW01vd/image.png" alt="Discord Entegrasyonu" width="800"/>
+  <br/>
+  <i>Discord Durum ve Aktivite Entegrasyonu</i>
+</div>
 
-## 🎵 Spotify Entegrasyonu
+Discord entegrasyonu aşağıdaki bilgileri gösterir:
+- Çevrimiçi durumu (çevrimiçi, boşta, rahatsız etmeyin, çevrimdışı)
+- Oynadığınız oyun veya kullandığınız uygulama
+- Oturum süresi ve aktivite bilgileri
 
-Spotify entegrasyonu, kullanıcının o anda Spotify'da dinlediği müzik bilgilerini (şarkı adı, sanatçı, albüm kapağı) gerçek zamanlı olarak web sitesinde gösterir.
+```javascript
+// Discord durum güncelleme örneği
+client.on('presenceUpdate', async (oldPresence, newPresence) => {
+  if (newPresence.userId === process.env.DISCORD_USER_ID) {
+    // Durum bilgilerini güncelle
+    const status = newPresence.status;
+    const activity = newPresence.activities[0]?.name || '';
+    
+    // JSON dosyasına kaydet
+    await updateStatusFile({ status, activity });
+  }
+});
+```
 
-Kurulum için:
+### 🎵 Spotify Entegrasyonu
 
-1. [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/) üzerinden bir uygulama oluşturun
-2. Redirect URI olarak `https://your-site.com/spotify-callback.php` ekleyin
+<div align="center">
+  <img src="https://i.ibb.co/NvGsrMP/image.png" alt="Spotify Entegrasyonu" width="800"/>
+  <br/>
+  <i>Spotify Şu Anda Çalınan Şarkı Entegrasyonu</i>
+</div>
+
+Spotify entegrasyonu kurulumu:
+
+1. [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/) üzerinden uygulama oluşturun
+2. Redirect URI: `https://your-site.com/spotify-callback.php`
 3. Client ID ve Client Secret bilgilerini `.env` dosyasına ekleyin
-4. Web sitenizi ziyaret edin ve Spotify yetkilendirmesini tamamlayın
+4. Web sitesini ziyaret ederek Spotify yetkilendirmesini tamamlayın
 
-## 🖥️ GitHub Portföy Entegrasyonu
+### 💻 GitHub Portföy Entegrasyonu
 
-GitHub entegrasyonu, belirtilen GitHub kullanıcısının repolarını çeker ve portföy bölümünde gösterir. Repolar yıldız sayısı, güncelleme tarihi veya oluşturma tarihine göre sıralanabilir.
+GitHub portföy özelliği aşağıdaki gruplandırmalarla projeleri gösterir:
+- En çok yıldız alan projeler
+- Son güncellenen projeler
+- Aktif geliştirilen projeler
+
+## 🎨 Özelleştirme
+
+Site görünümünü değiştirmek için:
+
+- Tema ve renkler: `modern-portfolio.css` içindeki CSS değişkenlerini düzenleyin
+- Animasyonlar: `script.js` dosyasındaki animasyon ayarlarını değiştirin
+- Arkaplan: `particles.js` konfigürasyonunu özelleştirin
 
 ## 📄 Lisans
 
-Bu proje BSD 3-Clause "New" or "Revised" lisansı altında lisanslanmıştır. Daha fazla bilgi için [LICENSE](LICENSE) dosyasına bakın.
+Bu proje, BERK tarafından geliştirilmiş özgün bir çalışmadır ve KynuxCloud Korumalı Geliştirici Lisansı ile korunmaktadır. Tüm hakları saklıdır.
 
-## ✨ Özelleştirme
+- Bu kodun kopyalanması, değiştirilmesi veya dağıtılması **KESİNLİKLE YASAKTIR**
+- Kod, otomatik izleme sistemleri ile telif ihlallerine karşı düzenli olarak taranmaktadır
+- İhlaller tespit edildiğinde, GitHub DMCA işlemleri ve yasal kovuşturma başlatılacaktır
 
-Site görünümünü veya davranışını özelleştirmek için:
+Detaylı lisans metni için [LICENSE](LICENSE) dosyasını inceleyiniz.
 
-- `style.css` veya `modern-portfolio.css` dosyalarını düzenleyin
-- `script.js` dosyasında JavaScript davranışlarını değiştirin
-- `particles.js` dosyasında arkaplan parçacık efektlerini ayarlayın
-- `index.php` dosyasında HTML yapısını değiştirin
+## 📬 İletişim
 
-## 🤝 Katkıda Bulunma
+Sorularınız veya önerileriniz mi var? Benimle iletişime geçin:
 
-Katkılarınızı memnuniyetle karşılıyoruz! Lütfen:
-
-1. Projeyi fork edin
-2. Yeni özellik dalı oluşturun (`git checkout -b yeni-ozellik`)
-3. Değişikliklerinizi commit edin (`git commit -am 'Yeni özellik: özellik açıklaması'`)
-4. Dalınızı push edin (`git push origin yeni-ozellik`)
-5. Pull Request oluşturun
+- GitHub: [KynuxDev](https://github.com/kynuxdev)
+- Discord: [@kynux_dev](https://discord.com/channels/@me/1244181502795976775)
+- Web: [kynux.dev](https://kynux.cloud)
 
 ---
 
-Geliştirici: [KynuxDev](https://github.com/kynux.dev) | © 2025 Tüm hakları saklıdır.
+<div align="center">
+  <p>© 2025 KynuxDev. Tüm hakları saklıdır.</p>
+  <p>
+    <img src="https://i.ibb.co/JRWpKCcM/s.png" alt="Logo" width="40" height="40"/>
+  </p>
+</div>
