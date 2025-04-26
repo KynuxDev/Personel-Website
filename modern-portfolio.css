@@ -1,4 +1,4 @@
-/* Modern GitHub Portföy CSS - 2025 Stili */
+
 :root {
     --primary-color: #3b82f6;
     --secondary-color: #2563eb;
@@ -22,7 +22,7 @@
     --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
-/* Temel Stiller */
+
 * {
     margin: 0;
     padding: 0;
@@ -40,7 +40,7 @@ body {
     overflow-x: hidden;
 }
 
-/* Animasyonlu Arkaplan */
+
 body::before {
     content: "";
     position: fixed;
@@ -65,7 +65,7 @@ body::before {
     }
 }
 
-/* Üst Menü Stili */
+
 .site-header {
     width: 100%;
     background-color: rgba(2, 6, 23, 0.95);
@@ -204,7 +204,7 @@ nav ul li a:hover::after {
     box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
 }
 
-/* Ana İçerik Konteyneri */
+
 .container {
     max-width: 1200px;
     width: 100%;
@@ -213,7 +213,7 @@ nav ul li a:hover::after {
     flex: 1;
 }
 
-/* Profil Bölümü */
+
 header {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
@@ -425,7 +425,7 @@ header::before {
     transform: translateY(-3px);
 }
 
-/* Kontroller ve Filtreleme */
+
 .controls {
     display: flex;
     justify-content: space-between;
@@ -512,7 +512,7 @@ header::before {
     color: var(--primary-color);
 }
 
-/* Kategori Kutuları */
+
 .section-container {
     display: flex;
     flex-wrap: wrap;
@@ -591,7 +591,7 @@ header::before {
     transition: var(--transition);
 }
 
-/* Repository Grid */
+
 .repo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -746,7 +746,7 @@ header::before {
     gap: 0.5rem;
 }
 
-/* Footer Bölümü */
+
 .site-footer {
     background-color: var(--bg-darker);
     text-align: center;
@@ -794,7 +794,7 @@ header::before {
     }
 }
 
-/* Geri Dön Butonu */
+
 .back-button {
     display: inline-flex;
     align-items: center;
@@ -822,7 +822,7 @@ header::before {
     font-size: 1.1rem;
 }
 
-/* Hata Mesajı */
+
 .error-message {
     background-color: rgba(239, 68, 68, 0.1);
     border-left: 4px solid var(--danger-color);
@@ -840,7 +840,7 @@ header::before {
     color: var(--danger-color);
 }
 
-/* Boş Proje Mesajı */
+
 .empty-message {
     text-align: center;
     width: 100%;
@@ -853,7 +853,7 @@ header::before {
     border: 1px dashed rgba(255, 255, 255, 0.1);
 }
 
-/* Bölüm Başlıkları */
+
 .section-header {
     text-align: center;
     margin-bottom: 2rem;
@@ -888,7 +888,7 @@ header::before {
     border-radius: 3px;
 }
 
-/* Animasyonlar */
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -904,7 +904,7 @@ header::before {
     animation: fadeIn 0.5s ease forwards;
 }
 
-/* Responsive Tasarım */
+
 @media (max-width: 992px) {
     .site-header {
         padding: 1rem 1.5rem;

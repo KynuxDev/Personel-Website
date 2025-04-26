@@ -1,12 +1,12 @@
-/* Modern Dark Tema ve Animasyonlu CSS */
+
 :root {
-    /* Ana Renk Paleti - Daha koyu temaya uygun */
+
     --primary-color: #3b82f6;
     --secondary-color: #2563eb;
     --accent-color: #60a5fa;
-    --background-dark: #091124; /* Daha koyu arka plan */
-    --background-darker: #050a18; /* Daha koyu ikincil arka plan */
-    --background-card: #152238; /* Daha koyu kart arka planı */
+
+
+
     --text-primary: #f8fafc;
     --text-secondary: #cbd5e1;
     --text-muted: #64748b;
@@ -14,11 +14,11 @@
     --warning-color: #f59e0b;
     --danger-color: #ef4444;
     
-    /* Discord ve Spotify Renkleri */
+
     --discord-color: #5865F2;
     --spotify-color: #1DB954;
     
-    /* Tasarım Değişkenleri */
+
     --border-radius: 12px;
     --border-radius-sm: 8px;
     --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
@@ -30,12 +30,12 @@
     --gradient-spotify: linear-gradient(135deg, #1DB954, #1ed760);
     --gradient-discord: linear-gradient(135deg, #5865F2, #7289da);
     
-    /* Animasyon Değişkenleri */
+
     --animation-duration: 0.8s;
     --animation-delay-factor: 0.2s;
 }
 
-/* Base Stiller */
+
 * {
     margin: 0;
     padding: 0;
@@ -57,7 +57,7 @@ body {
     position: relative;
 }
 
-/* Animasyonlu Arka Plan Efektleri */
+
 body::before {
     content: "";
     position: fixed;
@@ -73,7 +73,7 @@ body::before {
     animation: gradientShift 15s ease infinite alternate;
 }
 
-/* Parlayan Noktalar Arka Plan Efekti */
+
 body::after {
     content: "";
     position: fixed;
@@ -146,7 +146,7 @@ section {
     padding: 6rem 0;
     position: relative;
     width: 100%;
-    z-index: 5; /* Bölüm z-index değeri artırıldı */
+
 }
 
 a {
@@ -173,7 +173,7 @@ a {
     transform: skew(-12deg);
 }
 
-/* AOS Animasyon Geliştirmeleri - Sayfa kaydırma efektleri */
+
 [data-aos] {
     pointer-events: none;
 }
@@ -215,7 +215,7 @@ a {
     opacity: 1;
 }
 
-/* Navbar - Ortalanmış */
+
 .navbar {
     position: fixed;
     top: 0;
@@ -227,7 +227,7 @@ a {
     justify-content: space-between;
     align-items: center;
     transition: var(--transition);
-    background-color: rgba(5, 10, 24, 0.8); /* Daha koyu navbar */
+
     backdrop-filter: blur(10px);
 }
 
@@ -249,7 +249,7 @@ a {
     align-items: center;
     list-style: none;
     justify-content: center;
-    margin: 0 auto; /* Ortalama için */
+
 }
 
 .nav-links li {
@@ -296,7 +296,7 @@ a {
     transform: translateY(-3px);
 }
 
-/* Hero Bölümü - Tam ortalı */
+
 .hero {
     min-height: 100vh;
     display: flex;
@@ -314,7 +314,7 @@ a {
     margin: 0 auto;
 }
 
-/* Animasyonlu Başlık */
+
 .hero .title {
     font-size: 3.5rem;
     line-height: 1.2;
@@ -430,7 +430,7 @@ a {
     transform: translateY(-2px);
 }
 
-/* Scroll İndikatörü */
+
 .scroll-indicator {
     position: absolute;
     bottom: 2rem;
@@ -521,13 +521,13 @@ a {
     }
 }
 
-/* Platform Kartları - Gelişmiş Versiyon */
+
 .platforms-section {
     background-color: var(--background-darker);
     position: relative;
     overflow: hidden;
     text-align: center;
-    padding-bottom: 8rem; /* Daha fazla boşluk */
+
     z-index: 5;
 }
 
@@ -544,7 +544,7 @@ a {
     z-index: 0;
 }
 
-/* Platform bölüm arkaplanı için animasyonlu hareket eden ışık efekti */
+
 .platforms-section::after {
     content: "";
     position: absolute;
@@ -586,7 +586,7 @@ a {
     text-align: center;
     margin-bottom: 3rem;
     position: relative;
-    z-index: 20; /* Bölüm başlık z-index değeri değiştirildi */
+
     width: 100%;
 }
 
@@ -597,20 +597,20 @@ a {
     display: inline-block;
     padding: 12px 35px;
     animation: sectionHeaderGlow 4s ease-in-out infinite alternate;
-    z-index: 20; /* Z-index değeri düşürüldü */
-    background-color: rgba(5, 10, 24, 0.9); /* Başlık için opak arka plan */
+
+
     margin: 0 auto;
     border-radius: 15px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-/* Beceri Setim başlık artırması */
+
 #skills .section-header h2 {
     position: relative;
     z-index: 20;
     margin-bottom: 2rem;
-    background-color: rgba(5, 10, 24, 0.95); /* Daha opak arka plan */
+
     display: inline-block;
     padding: 15px 40px;
     border-radius: 20px;
@@ -618,12 +618,12 @@ a {
     border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-/* Platform Durumum başlık güçlendirmesi */
+
 #platforms .section-header h2 {
     position: relative;
     z-index: 20;
     margin-bottom: 2rem;
-    background-color: rgba(5, 10, 24, 0.95); /* Daha opak arka plan */
+
     display: inline-block;
     padding: 15px 40px;
     border-radius: 20px;
@@ -631,12 +631,12 @@ a {
     border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-/* GitHub Portföyüm başlık güçlendirmesi */
+
 #projects .section-header h2 {
     position: relative;
     z-index: 20;
     margin-bottom: 2rem;
-    background-color: rgba(5, 10, 24, 0.95); /* Daha opak arka plan */
+
     display: inline-block;
     padding: 15px 40px;
     border-radius: 20px;
@@ -644,7 +644,7 @@ a {
     border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-/* GitHub Portföy Bölümü - Modernleştirilmiş Stiller */
+
 .github-profile {
     position: relative;
     margin-bottom: 3rem;
@@ -682,7 +682,7 @@ a {
         inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-/* Parçacık ve Neon efektleri için animasyonlar */
+
 @keyframes glow {
     0%, 100% {
         box-shadow: 0 0 5px rgba(59, 130, 246, 0.5), 0 0 10px rgba(59, 130, 246, 0.3);
@@ -704,7 +704,7 @@ a {
     }
 }
 
-/* Parçacık arka plan stili */
+
 .bg-particles {
     position: fixed;
     top: 0;
@@ -814,7 +814,7 @@ a {
     font-size: 1rem;
 }
 
-/* Repolar için arama ve sıralama kontrolleri */
+
 .sort-controls {
     display: flex;
     justify-content: space-between;
@@ -902,7 +902,7 @@ a {
     color: var(--primary-color);
 }
 
-/* Repo grid düzeni */
+
 .repos-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -910,7 +910,7 @@ a {
     margin-bottom: 3rem;
 }
 
-/* Repo kartları */
+
 .repo-card {
     background-color: rgba(21, 34, 56, 0.8);
     backdrop-filter: blur(10px);
@@ -1090,7 +1090,7 @@ a {
     margin-bottom: 3rem;
 }
 
-/* Kategori kartları */
+
 .portfolio-categories {
     margin-top: 3rem;
 }
@@ -1162,12 +1162,12 @@ a {
     line-height: 1.6;
 }
 
-/* İletişime Geç başlık güçlendirmesi */
+
 #contact .section-header h2 {
     position: relative;
     z-index: 20;
     margin-bottom: 2rem;
-    background-color: rgba(5, 10, 24, 0.95); /* Daha opak arka plan */
+
     display: inline-block;
     padding: 15px 40px;
     border-radius: 20px;
@@ -1175,7 +1175,7 @@ a {
     border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-/* Beceri Setim başlık - özel arka plan */
+
 .section-title-bg {
     display: inline-block;
     background-color: rgba(5, 10, 24, 0.9);
@@ -1248,7 +1248,7 @@ a {
         inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-/* Kart kenar animasyonu - Renkli parlayan çerçeve */
+
 .platform-card::before {
     content: "";
     position: absolute;
@@ -1257,7 +1257,7 @@ a {
     right: 0;
     bottom: 0;
     border-radius: var(--border-radius);
-    padding: 2px; /* Çerçeve kalınlığı */
+
     background: linear-gradient(
         var(--rotate, 0deg),
         var(--discord-color) 0%, 
@@ -1310,7 +1310,7 @@ a {
     }
 }
 
-/* Kart arka plan gradyant çizgisi */
+
 .platform-card::after {
     content: "";
     position: absolute;
@@ -1322,7 +1322,7 @@ a {
     z-index: -1;
 }
 
-/* Animasyonlu arkaplan geçişi */
+
 .discord-card {
     background: linear-gradient(
         135deg, 
@@ -1555,7 +1555,7 @@ a {
     position: relative;
 }
 
-/* Animasyonlu oyun vurgulama efekti */
+
 .activity span::after {
     content: "";
     position: absolute;
@@ -1596,7 +1596,7 @@ a {
     overflow: hidden;
 }
 
-/* Spotify müzik çalar arka plan efekti */
+
 .now-playing::before {
     content: "";
     position: absolute;
@@ -1637,7 +1637,7 @@ a {
     transform: scale(1.1);
 }
 
-/* Album art parlayan kenar efekti */
+
 .album-art::after {
     content: "";
     position: absolute;
@@ -1728,9 +1728,9 @@ a {
     max-width: 200px;
 }
 
-/* Spotify şarkı ismi yanında dönen disk ikonu */
+
 .song-title::before {
-    content: "\f51f"; /* Font Awesome'dan disk ikonu */
+
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
     position: absolute;
@@ -1790,7 +1790,7 @@ a {
     border-radius: 3px;
 }
 
-/* İlerleme çubuğundaki parlak nokta efekti */
+
 .progress::after {
     content: "";
     position: absolute;
@@ -1813,7 +1813,7 @@ a {
     }
 }
 
-/* Müzik dinlenmeyen durum için stil */
+
 .not-playing {
     width: 100%;
     text-align: center;
@@ -1846,7 +1846,7 @@ a {
 }
 
 .not-playing p::before {
-    content: "\f1bc"; /* Spotify ikonu */
+
     font-family: "Font Awesome 5 Brands";
     display: block;
     font-size: 1.8rem;
@@ -1856,7 +1856,7 @@ a {
     animation: pulse 3s ease-in-out infinite;
 }
 
-/* Discord aktif değil durumu için stil */
+
 .no-activity {
     margin-top: 0.5rem;
 }
@@ -1901,7 +1901,7 @@ a {
     }
 }
 
-/* Son güncelleme zamanı göstergesi */
+
 .last-update-time {
     position: absolute;
     top: 15px;
@@ -1921,7 +1921,7 @@ a {
     background-color: rgba(0, 0, 0, 0.35);
 }
 
-/* Beceriler Bölümü */
+
 .skills-section {
     position: relative;
     overflow: hidden;
@@ -1929,7 +1929,7 @@ a {
     z-index: 4;
 }
 
-/* Yeni - Animasyonlu arka plan */
+
 .skills-section::before {
     content: "";
     position: absolute;
@@ -1954,7 +1954,7 @@ a {
     }
 }
 
-/* Beceri Setim Başlık Alanı */
+
 .skills-section .container {
     position: relative;
     z-index: 15;
@@ -1970,7 +1970,7 @@ a {
     z-index: 15;
 }
 
-/* Kart içindeki başlıklar */
+
 .skills-content h3 {
     position: relative;
     z-index: 15;
@@ -1985,14 +1985,14 @@ a {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     transform: translateZ(10px);
-    background-color: rgba(9, 17, 36, 0.95); /* Kart başlıkları için opak arka plan */
+
     padding: 10px 20px;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     display: inline-block;
 }
 
-/* Programlama Dilleri ve Yabancı Diller başlıkları için özel arka planlar */
+
 .skills-card h3 {
     position: relative;
     z-index: 15;
@@ -2001,7 +2001,7 @@ a {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
 }
 
-/* Yeni - 3D kart efekti */
+
 .skills-card {
     background-color: rgba(21, 34, 56, 0.85);
     background-image: 
@@ -2031,7 +2031,7 @@ a {
         inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
-/* Yeni - Hovering ışık efekti */
+
 .skills-card::before {
     content: "";
     position: absolute;
@@ -2061,7 +2061,7 @@ a {
     }
 }
 
-/* Yeni - Parlak kenar efekti */
+
 .skills-card::after {
     content: "";
     position: absolute;
@@ -2091,7 +2091,7 @@ a {
     opacity: 1;
 }
 
-/* Yeni - Alt çizgi animasyonu */
+
 .skills-card h3::after {
     content: "";
     position: absolute;
@@ -2117,7 +2117,7 @@ a {
     z-index: 15;
 }
 
-/* Yeni - Gelişmiş yetenek öğeleri */
+
 .skill-item {
     position: relative;
     padding: 1rem;
@@ -2153,13 +2153,13 @@ a {
     position: relative;
     padding-left: 1.5rem;
     color: var(--text-primary);
-    /* Yeni - Animasyonlu renkli gölge */
+
     text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
 }
 
-/* Yeni - İkon efekti */
+
 .skill-name::before {
-    content: "\f121"; /* Kod ikonu */
+
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
     position: absolute;
@@ -2194,7 +2194,7 @@ a {
     transform: scale(1.05);
 }
 
-/* Yeni - Gelişmiş ilerleme çubuğu */
+
 .skill-bar {
     height: 10px;
     background-color: rgba(0, 0, 0, 0.25);
@@ -2223,7 +2223,7 @@ a {
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
 }
 
-/* Yeni - Gradyan animasyonu */
+
 @keyframes gradientMove {
     0% {
         background-position: 0% 50%;
@@ -2236,7 +2236,7 @@ a {
     }
 }
 
-/* Yeni - İlerleme çubuğu parlak nokta */
+
 .skill-progress::after {
     content: "";
     position: absolute;
@@ -2264,37 +2264,37 @@ a {
     }
 }
 
-/* Beceri kategorilerine özel ikonlar */
+
 .skill-item:nth-child(1) .skill-name::before {
-    content: "\f3b9"; /* JavaScript ikonu */
+
 }
 
 .skill-item:nth-child(2) .skill-name::before {
-    content: "\f3e2"; /* Python ikonu */
+
 }
 
 .skill-item:nth-child(3) .skill-name::before {
-    content: "\f13b"; /* HTML ikonu */
+
 }
 
 .skill-item:nth-child(4) .skill-name::before {
-    content: "\f457"; /* PHP ikonu */
+
 }
 
-/* İngilizce, Almanca, Japonca için özel ikonlar */
+
 .skills-card:nth-child(2) .skill-item:nth-child(1) .skill-name::before {
-    content: "\f1ab"; /* Dil ikonu (İngilizce) */
+
 }
 
 .skills-card:nth-child(2) .skill-item:nth-child(2) .skill-name::before {
-    content: "\f1ab"; /* Dil ikonu (Almanca) */
+
 }
 
 .skills-card:nth-child(2) .skill-item:nth-child(3) .skill-name::before {
-    content: "\f1ab"; /* Dil ikonu (Japonca) */
+
 }
 
-/* Yeni - Yetenek öğesi hover efekti */
+
 .skills-card .skill-item {
     overflow: hidden;
 }
@@ -2321,12 +2321,12 @@ a {
     transform: rotate(30deg) translate(10%, 10%);
 }
 
-/* Beceri Setim Başlık Düzeltmesi */
+
 #skills {
     position: relative;
 }
 
-/* Ana başlık arkaplan paneli */
+
 #beceri-setim {
     position: relative;
     z-index: 25;
@@ -2339,7 +2339,7 @@ a {
     margin-bottom: 3rem;
 }
 
-/* Alt başlıklar için arkaplan paneli */
+
 .skill-header-bg {
     background-color: rgba(5, 10, 24, 0.95);
     padding: 10px 20px;
@@ -2351,7 +2351,7 @@ a {
     z-index: 25;
 }
 
-/* Platform Durumum başlığı için arkaplan paneli */
+
 #platform-durumum {
     position: relative;
     z-index: 25;
@@ -2364,7 +2364,7 @@ a {
     margin-bottom: 3rem;
 }
 
-/* Projeler Bölümü */
+
 .projects-section {
     background-color: var(--background-darker);
     position: relative;
@@ -2463,7 +2463,7 @@ a {
     transform: translateY(-2px);
 }
 
-/* İletişim Bölümü */
+
 .contact-section {
     position: relative;
     overflow: hidden;
@@ -2560,7 +2560,7 @@ a {
     width: 100%;
 }
 
-/* Footer */
+
 .footer {
     background-color: var(--background-darker);
     padding: 4rem 0 2rem;
@@ -2740,7 +2740,7 @@ a {
     vertical-align: middle;
 }
 
-/* Back to Top Button */
+
 .back-to-top {
     position: fixed;
     bottom: 2rem;
@@ -2771,7 +2771,7 @@ a {
     transform: translateY(-5px);
 }
 
-/* Animasyonlar */
+
 .reveal-content {
     opacity: 0;
     transform: translateY(50px);
@@ -2783,7 +2783,7 @@ a {
     transform: translateY(0);
 }
 
-/* Floating Particles */
+
 .floating-particle {
     position: absolute;
     opacity: 0;
@@ -2792,7 +2792,7 @@ a {
     z-index: 1;
 }
 
-/* Beceri Setim Başlığı İçin Özel Düzenleme */
+
 .beceri-setim-header {
     position: relative;
     top: 0;
@@ -2800,7 +2800,7 @@ a {
     margin-bottom: 40px;
 }
 
-/* Responsive Tasarım */
+
 @media (max-width: 992px) {
     .hero .title {
         font-size: 2.8rem;
@@ -2882,7 +2882,7 @@ a {
     }
 }
 
-/* Yeni Eklenen "Beceri Setim" Başlık Stili */
+
 .skills-section .section-header h2 {
     background-color: rgba(5, 10, 24, 0.95);
     padding: 15px 40px;
@@ -2893,21 +2893,16 @@ a {
     position: relative;
     z-index: 150;
 }
-/* Kart Başlıkları İçin Z-Index */
 .skills-card h3, 
 .platform-card h3, 
 .project-card h3 {
     position: relative;
     z-index: 15;
 }
-
-/* Tüm Bölüm Başlıkları İçin */
 h2, h3 {
     position: relative;
     z-index: 25 !important;
 }
-
-/* Programlama Dilleri/Yabancı Diller Başlık Stili */
 .skills-content h3 {
     background-color: rgba(5, 10, 24, 0.95);
     padding: 12px 25px;
@@ -2918,8 +2913,6 @@ h2, h3 {
     margin-bottom: 2rem;
     z-index: 25;
 }
-
-/* Başlık Kapsayıcıları Ortak Stili */
 #beceriSetimBaslik,
 #githubPortfoyumBaslik,
 #platformDurumumBaslik,
@@ -2930,14 +2923,14 @@ h2, h3 {
     display: inline-block;
     width: 100%;
     margin-bottom: 50px;
-    /*background-color: rgba(5, 10, 24, 0.95);*/
+
     padding: 10px 30px;
     border-radius: 20px;
-    /*box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);*/
-    /*border: 1px solid rgba(59, 130, 246, 0.3);*/
+
+
 }
 
-/* Parallax transform özelliğini geçersiz kıl */
+
 .section-header {
     transform: none !important;
 }
