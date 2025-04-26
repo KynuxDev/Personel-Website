@@ -56,6 +56,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $connected = false;
         header('Location: ' . $_SERVER['PHP_SELF'] . '?disconnected=1');
         exit;
+    } elseif ($action === 'reset') {
+        if (file_exists($config_file)) {
+            $config_data = json_decode(file_get_contents($config_file), true);
+            if (isset($config_data['refresh_token'])) {
+                unset($config_data['refresh_token']);
+            }
+            if (isset($config_data['access_token'])) {
+                unset($config_data['access_token']);
+            }
+            if (isset($config_data['token_expiry'])) {
+                unset($config_data['token_expiry']);
+            }
+            file_put_contents($config_file, json_encode($config_data, JSON_PRETTY_PRINT));
+        }
+
+        if (file_exists('logs/spotify_token_response.log')) {
+            unlink('logs/spotify_token_response.log');
+        }
+        if (file_exists('logs/spotify_token.log')) {
+            unlink('logs/spotify_token.log');
+        }
+        if (file_exists('logs/spotify_player.log')) {
+            unlink('logs/spotify_player.log');
+        }
+        if (file_exists('logs/spotify_error.log')) {
+            unlink('logs/spotify_error.log');
+        }
+        
+        $message = 'Spotify bağlantınız ve log dosyalarınız tamamen sıfırlandı. Lütfen hesabınızı yeniden bağlayın.';
+        $status = 'success';
+        $connected = false;
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?reset=1');
+        exit;
     }
 }
 
@@ -69,6 +102,9 @@ if (isset($_GET['saved'])) {
     $message = 'Spotify hesabınız başarıyla bağlandı!';
     $status = 'success';
     $connected = true;
+} elseif (isset($_GET['reset'])) {
+    $message = 'Spotify bağlantınız sıfırlandı. Lütfen hesabınızı yeniden bağlayın.';
+    $status = 'success';
 }
 
 $client_id = '';
@@ -171,6 +207,12 @@ if (file_exists($config_file)) {
         
         .danger-button:hover {
             background-color: #f25d5d;
+        }
+        
+        .reset-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .status-message {
@@ -317,6 +359,22 @@ if (file_exists($config_file)) {
                     <p>Önce Adım 2'yi tamamlayın ve API bilgilerinizi kaydedin.</p>
                 <?php endif; ?>
             </div>
+            
+            <?php if ($connected): ?>
+            <div class="reset-section">
+                <h3 class="step-title">4. Bağlantıyı Sıfırla</h3>
+                <p>Spotify bağlantınızda sorun yaşıyorsanız, bağlantıyı tamamen sıfırlayabilirsiniz. Bu işlem:</p>
+                <ul>
+                    <li>Token bilgilerinizi siler (yeniden bağlanmanız gerekir)</li>
+                    <li>Log dosyalarını temizler</li>
+                    <li>Yeni ve temiz bir bağlantı kurmanızı sağlar</li>
+                </ul>
+                <form method="post" action="">
+                    <input type="hidden" name="action" value="reset">
+                    <button type="submit" class="button danger-button">Bağlantıyı Sıfırla</button>
+                </form>
+            </div>
+            <?php endif; ?>
             
             <div class="button-group">
                 <a href="index.php" class="button secondary-button">Ana Sayfaya Dön</a>

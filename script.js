@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function fetchStatusUpdates() {
-        fetch('simple-status.php?' + new Date().getTime())
+        fetch('get-status.php?' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
                 lastUpdateTime = new Date().getTime();
@@ -432,7 +432,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const nowPlaying = spotifyCard.querySelector('.now-playing');
         const notPlaying = spotifyCard.querySelector('.not-playing');
         
-        if (status.is_playing) {
+        // Log Spotify status for debugging
+        console.log("Spotify Status:", status);
+        
+        if (status.is_playing === true) {
             if (notPlaying) {
                 notPlaying.remove();
             }

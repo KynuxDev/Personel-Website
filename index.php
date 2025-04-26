@@ -78,283 +78,44 @@ function getGithubUserInfo($username) {
     return $userInfo;
 }
 
-function getDiscordStatus() {
-    // logs dizininin varlığını kontrol et ve yoksa oluştur
-    $log_dir = 'logs';
-    if (!file_exists($log_dir)) {
-        mkdir($log_dir, 0755, true);
-    }
-    
-    // Discord user ID
-    $user_id = '1244181502795976775';
-    
-    // Lanyard API kullanarak Discord durumunu al
-    $api_url = "https://api.lanyard.rest/v1/users/{$user_id}";
-    
-    try {
-        $response = @file_get_contents($api_url);
-        
-        if ($response === false) {
-            // API'ye bağlanılamadı, varsayılan durum döndür
-            file_put_contents('logs/discord_error.log', date('Y-m-d H:i:s') . " - API Error: Could not connect to Lanyard API\n", FILE_APPEND);
-            return [
-                'status' => 'online',
-                'game' => '',
-                'has_game' => false,
-                'username' => 'kynux.dev',
-                'discriminator' => '0',
-                'last_updated' => date('Y-m-d H:i:s')
-            ];
-        }
-        
-        $data = json_decode($response, true);
-        
-        if (!$data || !isset($data['success']) || $data['success'] !== true) {
-            // API geçersiz yanıt verdi, varsayılan durum döndür
-            file_put_contents('logs/discord_error.log', date('Y-m-d H:i:s') . " - API Error: Invalid response from Lanyard API\n", FILE_APPEND);
-            return [
-                'status' => 'online',
-                'game' => '',
-                'has_game' => false,
-                'username' => 'kynux.dev',
-                'discriminator' => '0',
-                'last_updated' => date('Y-m-d H:i:s')
-            ];
-        }
-        
-        // API'den başarılı yanıt
-        $discord_data = $data['data'];
-        
-        // Oyun aktivitesini kontrol et
-        $game = '';
-        $has_game = false;
-        
-        if (!empty($discord_data['activities'])) {
-            foreach ($discord_data['activities'] as $activity) {
-                if (isset($activity['type']) && $activity['type'] === 0) { // Type 0 = Playing
-                    $game = $activity['name'] ?? '';
-                    $has_game = true;
-                    break;
-                }
-            }
-        }
-        
-        return [
-            'status' => $discord_data['discord_status'] ?? 'online',
-            'game' => $game,
-            'has_game' => $has_game,
-            'username' => $discord_data['discord_user']['username'] ?? 'kynux.dev',
-            'discriminator' => $discord_data['discord_user']['discriminator'] ?? '0',
-            'last_updated' => date('Y-m-d H:i:s')
-        ];
-        
-    } catch (Exception $e) {
-        file_put_contents('logs/discord_error.log', date('Y-m-d H:i:s') . " - Error: " . $e->getMessage() . "\n", FILE_APPEND);
-        
-        // Hata durumunda varsayılan değerleri döndür
-        return [
-            'status' => 'online',
-            'game' => '',
-            'has_game' => false,
-            'username' => 'kynux.dev',
-            'discriminator' => '0',
-            'last_updated' => date('Y-m-d H:i:s')
-        ];
-    }
-}
+// Gereksiz kodlar temizlendi: Platform verilerini direk API'den alıyoruz
+// Önceden bu dosyada yer alan getDiscordStatus() ve getSpotifyStatus() fonksiyonları kaldırıldı
+// get-status.php dosyasından güncel verileri alıyoruz
 
-function getSpotifyStatus() {
-    $env_file = __DIR__ . '/.env';
-    $client_id = '';
-    $client_secret = '';
-    
-    if (file_exists($env_file)) {
-        $env_vars = parse_ini_file($env_file);
-        $client_id = $env_vars['SPOTIFY_CLIENT_ID'] ?? '';
-        $client_secret = $env_vars['SPOTIFY_CLIENT_SECRET'] ?? '';
-    }
-    
-    if (empty($client_id) || empty($client_secret)) {
-        error_log("Spotify yapılandırma hatası: API kimlik bilgileri bulunamadı.");
-        return [
-            'is_playing' => false,
-            'song' => '',
-            'artist' => '',
-            'album_art' => '',
-            'error' => 'Yapılandırma hatası'
-        ];
-    }
-    
-    if (!file_exists('logs')) {
-        mkdir('logs', 0755, true);
-    }
-    
-    $spotify_config_file = 'spotify_config.json';
-    $refresh_token = '';
-    $config_data = [];
-    $access_token = '';
-    
-    if (file_exists($spotify_config_file)) {
-        $config_content = file_get_contents($spotify_config_file);
-        $config_data = json_decode($config_content, true);
-        $refresh_token = $config_data['refresh_token'] ?? '';
-        $access_token = $config_data['access_token'] ?? '';
-        $token_expiry = $config_data['token_expiry'] ?? 0;
-    }
-    
-    if (isset($_GET['code'])) {
-        $code = $_GET['code'];
-        $redirect_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}/spotify-callback.php";
-        
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://accounts.spotify.com/api/token");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-            'grant_type' => 'authorization_code',
-            'code' => $code,
-            'redirect_uri' => $redirect_uri,
-            'client_id' => $client_id,
-            'client_secret' => $client_secret
-        ]));
-        
-        $response = curl_exec($ch);
-        curl_close($ch);
-        
-        file_put_contents('logs/spotify_token_response.log', date('Y-m-d H:i:s') . " - Response from auth code: " . $response . "\n", FILE_APPEND);
-        
-        $data = json_decode($response, true);
-        
-        if (isset($data['refresh_token']) && isset($data['access_token'])) {
-            $refresh_token = $data['refresh_token'];
-            $access_token = $data['access_token'];
-            $expires_in = $data['expires_in'] ?? 3600;
-            
-            $config_data['refresh_token'] = $refresh_token;
-            $config_data['access_token'] = $access_token;
-            $config_data['token_expiry'] = time() + $expires_in;
-            $config_data['updated_at'] = date('Y-m-d H:i:s');
-            
-            file_put_contents($spotify_config_file, json_encode($config_data));
-            
-            header("Location: index.php");
-            exit;
-        }
-    }
-    
-    if (empty($refresh_token) && !isset($_GET['code'])) {
-        $redirect_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}/spotify-callback.php";
-        $auth_url = "https://accounts.spotify.com/authorize?client_id={$client_id}&response_type=code&redirect_uri=" . urlencode($redirect_uri) . "&scope=user-read-currently-playing%20user-read-playback-state&show_dialog=true";
-        
-        file_put_contents('logs/spotify_auth.log', date('Y-m-d H:i:s') . " - Spotify yetkilendirmesi gerekiyor. URL: {$auth_url}\n", FILE_APPEND);
-        
-        return [
-            'is_playing' => false, // Gerçek durumu yansıtacak şekilde değiştirildi
-            'song' => '',
-            'artist' => '',
-            'album_art' => '',
-            'auth_required' => true,
-            'auth_url' => $auth_url
-        ];
-    }
-    
-    $token_expiry = $config_data['token_expiry'] ?? 0;
-    $now = time();
-    
-    if ($now >= $token_expiry || empty($access_token)) {
-    
-        try {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "https://accounts.spotify.com/api/token");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=refresh_token&refresh_token={$refresh_token}");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Authorization: Basic " . base64_encode("{$client_id}:{$client_secret}")
-            ]);
-            
-            $token_response = curl_exec($ch);
-            $token_data = json_decode($token_response, true);
-            
-            file_put_contents('logs/spotify_token.log', date('Y-m-d H:i:s') . " - Token Refresh Response: " . print_r($token_data, true) . "\n", FILE_APPEND);
-            
-            if (isset($token_data['access_token'])) {
-                $access_token = $token_data['access_token'];
-                $expires_in = $token_data['expires_in'] ?? 3600;
-                
-                $config_data['access_token'] = $access_token;
-                $config_data['token_expiry'] = time() + $expires_in;
-                $config_data['updated_at'] = date('Y-m-d H:i:s');
-                
-                if (isset($token_data['refresh_token'])) {
-                    $config_data['refresh_token'] = $token_data['refresh_token'];
-                }
-                
-                file_put_contents($spotify_config_file, json_encode($config_data));
-            } else {
-                file_put_contents('logs/spotify_error.log', date('Y-m-d H:i:s') . " - Failed to refresh token: " . print_r($token_data, true) . "\n", FILE_APPEND);
-                
-                $redirect_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}/spotify-callback.php";
-                $auth_url = "https://accounts.spotify.com/authorize?client_id={$client_id}&response_type=code&redirect_uri=" . urlencode($redirect_uri) . "&scope=user-read-currently-playing%20user-read-playback-state&show_dialog=true";
-                
-                return [
-                    'is_playing' => false, // Gerçek durumu yansıtacak şekilde değiştirildi
-                    'song' => '',
-                    'artist' => '',
-                    'album_art' => '',
-                    'auth_required' => true,
-                    'auth_url' => $auth_url
-                ];
-            }
-        } catch (Exception $e) {
-            file_put_contents('logs/spotify_error.log', date('Y-m-d H:i:s') . " - Token refresh error: " . $e->getMessage() . "\n", FILE_APPEND);
-        }
-    }
-    
-    try {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://api.spotify.com/v1/me/player/currently-playing");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "Authorization: Bearer {$access_token}"
-        ]);
-        
-        $player_response = curl_exec($ch);
-        $player_data = json_decode($player_response, true);
-        
-        curl_close($ch);
-        
-        file_put_contents('logs/spotify_player.log', date('Y-m-d H:i:s') . " - Player Response: " . print_r($player_data, true) . "\n", FILE_APPEND);
-        
-        if (isset($player_data['is_playing']) && $player_data['is_playing'] && isset($player_data['item'])) {
-            return [
-                'is_playing' => true,
-                'song' => $player_data['item']['name'],
-                'artist' => $player_data['item']['artists'][0]['name'],
-                'album_art' => $player_data['item']['album']['images'][1]['url']
-            ];
-        } else {
-            return [
-                'is_playing' => false,
-                'song' => '',
-                'artist' => '',
-                'album_art' => ''
-            ];
-        }
-    } catch (Exception $e) {
-        file_put_contents('logs/spotify_error.log', date('Y-m-d H:i:s') . " - API error: " . $e->getMessage() . "\n", FILE_APPEND);
-    }
-    
-    return [
+$api_url = 'get-status.php';
+$response = @file_get_contents($api_url);
+if ($response === false) {
+    // API yanıt vermediğinde varsayılan veriler kullanılıyor
+    $discord = [
+        'status' => 'online',
+        'game' => '',
+        'has_game' => false,
+        'username' => 'kynux.dev',
+        'discriminator' => '0'
+    ];
+    $spotify = [
+        'is_playing' => false,
+        'song' => '',
+        'artist' => '',
+        'album_art' => ''
+    ];
+} else {
+    $statusData = json_decode($response, true);
+    // Doğrudan API'den gelen verileri kullan
+    $discord = $statusData['discord'] ?? [
+        'status' => 'online',
+        'game' => '',
+        'has_game' => false,
+        'username' => 'kynux.dev',
+        'discriminator' => '0'
+    ];
+    $spotify = $statusData['spotify'] ?? [
         'is_playing' => false,
         'song' => '',
         'artist' => '',
         'album_art' => ''
     ];
 }
-
-$discord = getDiscordStatus();
-$spotify = getSpotifyStatus();
 
 $api_setup_info = "";
 ?>
@@ -844,51 +605,5 @@ $api_setup_info = "";
     <script src="script.js"></script>
     
     <div class="page-transition-overlay"></div>
-    
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Neon efektleri için elementleri seç
-        const neonElements = document.querySelectorAll('.repo-card, .profile-image, .btn-primary, .category-icon');
-        
-        // Her element için rastgele parıldama animasyonu ekle
-        neonElements.forEach(element => {
-            // Rastgele parıldama süresi (3-7 saniye arası)
-            const randomDuration = Math.random() * 4 + 3;
-            // Rastgele başlangıç gecikmesi (0-5 saniye arası)
-            const randomDelay = Math.random() * 5;
-            
-            element.style.animation = `glow ${randomDuration}s ease-in-out ${randomDelay}s infinite alternate`;
-        });
-        
-        // Interaktif profil resmi efekti
-        const profileImage = document.querySelector('.profile-image');
-        if (profileImage) {
-            profileImage.addEventListener('mousemove', function(e) {
-                const bounds = this.getBoundingClientRect();
-                const mouseX = e.clientX - bounds.left;
-                const mouseY = e.clientY - bounds.top;
-                const centerX = bounds.width / 2;
-                const centerY = bounds.height / 2;
-                
-                // İmlecin pozisyonuna göre 3D döndürme hesapla
-                const rotateY = ((mouseX - centerX) / centerX) * 15;
-                const rotateX = ((centerY - mouseY) / centerY) * 15;
-                
-                // Dönme efektini uygula
-                this.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale(1.1)`;
-                this.style.boxShadow = `
-                    ${rotateY / 3}px ${rotateX / 3}px 15px rgba(59, 130, 246, 0.6),
-                    0 0 30px rgba(59, 130, 246, 0.4)
-                `;
-            });
-            
-            profileImage.addEventListener('mouseleave', function() {
-                // Mouse ayrıldığında normal görünüme geri dön
-                this.style.transform = '';
-                this.style.boxShadow = '';
-            });
-        }
-    });
-    </script>
 </body>
 </html>

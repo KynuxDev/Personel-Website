@@ -1817,15 +1817,18 @@ a {
 .not-playing {
     width: 100%;
     text-align: center;
+    margin-top: 0.5rem;
 }
 
 .not-playing p {
-    display: block;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     padding: 1.8rem 0;
     color: var(--text-secondary);
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 12px;
     font-size: 0.95rem;
     font-weight: 500;
@@ -1834,6 +1837,7 @@ a {
         0 8px 15px rgba(0, 0, 0, 0.2);
     position: relative;
     transition: all 0.3s ease;
+    min-height: 100px;
 }
 
 .spotify-card:hover .not-playing p {
@@ -1849,11 +1853,12 @@ a {
     content: "\f1bc"; /* Spotify ikonu */
     font-family: "Font Awesome 5 Brands";
     display: block;
-    font-size: 1.8rem;
+    font-size: 2.2rem;
     color: var(--spotify-color);
-    margin-bottom: 0.8rem;
-    opacity: 0.7;
+    margin-bottom: 1rem;
+    opacity: 0.8;
     animation: pulse 3s ease-in-out infinite;
+    text-shadow: 0 0 15px rgba(29, 185, 84, 0.5);
 }
 
 /* Discord aktif değil durumu için stil */
@@ -2937,6 +2942,7 @@ h2, h3 {
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
     border: 1px solid rgba(59, 130, 246, 0.3);
 }
+
 
 /* Parallax transform özelliğini geçersiz kıl */
 .section-header {

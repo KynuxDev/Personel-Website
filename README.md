@@ -1,4 +1,4 @@
-# 🚀 KynuxDev Kişisel Portföy v3.5.1
+# 🚀 KynuxDev Kişisel Portföy v3.5.2
 
 <div align="center">
   
@@ -53,7 +53,7 @@
         <h3>🔄 Gerçek Zamanlı Platform Entegrasyonları</h3>
         <ul>
           <li>GitHub Repo verileri otomatik güncellenir</li>
-          <li>Discord aktivite ve durum takibi</li>
+          <li>Discord aktivite ve durum takibi (Lanyard API)</li>
           <li>Spotify dinleme bilgileri canlı gösterimi</li>
         </ul>
       </td>
@@ -87,17 +87,18 @@
   </table>
 </div>
 
-## 🛠️ Kurulum
+## 🛠️ Kurulum ve Yapılandırma Rehberi
 
 ### Gereksinimler
 
 - PHP 7.4 veya daha yüksek
 - Web sunucusu (Apache/Nginx)
+- XAMPP, WAMP veya benzeri bir sunucu ortamı (yerel geliştirme için)
 - Composer (önerilen)
-- Discord Bot Token (isteğe bağlı)
-- Spotify Geliştirici Hesabı (isteğe bağlı)
+- Discord Kullanıcı ID (Lanyard API için)
+- Spotify Geliştirici Hesabı (Spotify entegrasyonu için)
 
-### Hızlı Başlangıç
+### 1. Temel Kurulum Adımları
 
 ```bash
 # Repository'yi klonlayın
@@ -109,26 +110,110 @@ cd personal-website
 # .env.example dosyasını .env olarak kopyalayın
 cp .env.example .env
 
-# .env dosyasını düzenleyin ve API anahtarlarını ekleyin
+# .env dosyasını düzenleyin
 nano .env
 ```
 
-### 🔧 Yapılandırma
+### 2. Çevresel Değişkenleri Yapılandırma
 
-`.env` dosyasını ana dizinde oluşturun:
+`.env` dosyasını aşağıdaki bilgilerle güncelleyin:
 
 ```env
-# GitHub API
+# GitHub API Yapılandırması
 GITHUB_TOKEN=github_token_buraya
+GITHUB_USERNAME=github_kullanıcı_adınız
 
-# Discord Bot
-DISCORD_BOT_TOKEN=discord_token_buraya
-DISCORD_USER_ID=discord_user_id_buraya
+# Sosyal Medya Bağlantıları
+LINKEDIN_URL=https://linkedin.com/in/kullaniciadi
+GITHUB_URL=https://github.com/kullaniciadi
+TWITTER_URL=https://twitter.com/kullaniciadi
 
-# Spotify API
-SPOTIFY_CLIENT_ID=spotify_client_id_buraya
-SPOTIFY_CLIENT_SECRET=spotify_client_secret_buraya
+# İletişim Bilgileri
+CONTACT_EMAIL=mail@adresiniz.com
 ```
+
+### 3. Spotify API Entegrasyonu
+
+Spotify API entegrasyonu, sitenizin şu anda çalan müziği gerçek zamanlı olarak göstermesini sağlar.
+
+#### 3.1. Spotify Geliştirici Hesabı Oluşturma
+
+1. [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/) adresine gidin
+2. Spotify hesabınızla giriş yapın (yoksa önce bir hesap oluşturun)
+3. "Create an App" butonuna tıklayın
+4. Uygulama için bir ad ve açıklama girin (örn. "Kişisel Web Sitesi")
+5. Uygulamanın amacını seçin ve "Web API" seçeneğini işaretleyin
+6. Kullanım koşullarını kabul edin ve "Create" butonuna tıklayın
+
+#### 3.2. Redirect URI Ekleme
+
+1. Yeni oluşturulan uygulamanızın panelinde "Edit Settings" butonuna tıklayın
+2. "Redirect URIs" bölümüne aşağıdaki URI'yi ekleyin:
+   ```
+   http://localhost/spotify-callback.php
+   ```
+   (veya web siteniz canlıysa: `https://sizin-siteniz.com/spotify-callback.php`)
+3. "Save" butonuna tıklayarak değişiklikleri kaydedin
+
+#### 3.3. API Bilgilerini Yapılandırma
+
+1. Uygulamanızın Client ID ve Client Secret bilgilerini panelden kopyalayın
+2. Web sitenizde `spotify-setup.php` sayfasına gidin
+3. Client ID ve Client Secret bilgilerini bu sayfadaki forma girin ve kaydedin
+4. "Spotify Hesabını Bağla" butonuna tıklayın ve yetkilendirmeyi tamamlayın
+5. Yetkilendirme başarılı olduğunda otomatik olarak yönlendirileceksiniz
+
+#### 3.4. Sorun Giderme
+
+Spotify bağlantısında bir sorun yaşarsanız:
+1. `spotify-setup.php` sayfasına gidin
+2. "Bağlantıyı Sıfırla" butonunu kullanarak tüm token ve log dosyalarını temizleyin
+3. Client ID ve Client Secret bilgilerinizi doğrulayın ve yeniden girin
+4. Yetkilendirme sürecini tekrar başlatın
+
+### 4. Discord Entegrasyonu
+
+Discord durumunuzu göstermek için iki seçenek bulunmaktadır:
+
+#### 4.1. Lanyard API İle Entegrasyon (Önerilen)
+
+[Lanyard API](https://github.com/Phineas/lanyard), Discord durumunuzu kolayca göstermenize olanak tanır ve herhangi bir bot gerektirmez.
+
+1. Discord kullanıcı ID'nizi bulun:
+   - Discord'da ayarlarınıza gidin > Gelişmiş > Geliştirici Modu'nu etkinleştirin
+   - Profil resminize sağ tıklayın ve "ID'yi Kopyala" seçeneğini seçin
+   
+2. `get-status.php` dosyasındaki Discord kullanıcı ID'nizi güncelleyin:
+   ```php
+   // Discord user ID
+   $user_id = 'DISCORD_KULLANICI_ID_BURAYA';
+   ```
+
+3. [Lanyard Discord sunucusuna](https://discord.gg/lanyard) katılın (API'yi kullanabilmek için)
+
+#### 4.2. Discord Bot İle Entegrasyon (İsteğe Bağlı - Gelişmiş)
+
+Daha fazla özelleştirme isterseniz, kendi Discord bot'unuzu kullanabilirsiniz:
+
+1. [Discord Developer Portal](https://discord.com/developers/applications)'da yeni bir uygulama oluşturun
+2. Bot sekmesine geçin ve "Add Bot" butonuna tıklayın
+3. Bot tokeninizi `.env` dosyasına ekleyin:
+   ```env
+   DISCORD_BOT_TOKEN=your_bot_token_here
+   ```
+4. Discord-bot klasöründeki kurulum adımlarını takip edin
+
+### 5. GitHub Portföy Entegrasyonu
+
+GitHub projelerinizi göstermek için:
+
+1. [GitHub](https://github.com/settings/tokens)'da bir kişisel erişim tokeni oluşturun
+2. Token'a `public_repo` izinlerini verin
+3. `.env` dosyasına ekleyin:
+   ```env
+   GITHUB_TOKEN=your_github_token_here
+   GITHUB_USERNAME=your_github_username
+   ```
 
 ## 📂 Proje Yapısı
 
@@ -141,88 +226,38 @@ kynux-portfolio/
 ├── particles.js             # Arkaplan efektleri
 ├── modern-portfolio.css     # Alternatif modern stil
 │
-├── api/                     # API entegrasyonları
-│   ├── api-status.php       # Platform durumları API
-│   ├── get-status.php       # Durum bilgisi alma
-│   └── process-form.php     # İletişim formu işleme
+├── get-status.php           # Platform durumları API
+├── spotify-auth.php         # Spotify yetkilendirme
+├── spotify-callback.php     # Spotify oturum yakalama
+├── spotify-setup.php        # Spotify ayarlar ve bağlantı yönetimi
 │
-├── github/                  # GitHub entegrasyonu
-│   └── github-portfolio.php # GitHub portföy oluşturma
+├── process-form.php         # İletişim formu işleme
+├── github-portfolio.php     # GitHub portföy oluşturma
 │
-├── spotify/                 # Spotify entegrasyonu
-│   ├── spotify-callback.php # Spotify oturum yakalama
-│   └── spotify-auth.php     # Spotify yetkilendirme
-│
-├── discord-bot/             # Discord bot entegrasyonu
-│   ├── discord-bot.js       # Discord bot kodu
+├── discord-bot/             # Discord bot entegrasyonu (isteğe bağlı)
 │   ├── discord-api.php      # Discord API entegrasyonu
-│   └── README.md            # Bot dökümantasyonu
+│   └── discord-update-cron.php # Durum güncelleme
 │
 └── logs/                    # Log ve durum dosyaları
-    └── discord_status.json  # Discord durum bilgileri
 ```
 
-## 🔌 Platform Entegrasyonları
+## 🚀 Platformları Test Etme
 
-### 🎮 Discord Entegrasyonu (Lanyard API)
+### Spotify Entegrasyonu Testi
 
-<div align="center">
-  <img src="https://i.ibb.co/4LW01vd/image.png" alt="Discord Entegrasyonu" style="max-width: 720px; width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); margin: 20px auto;"/>
-  <br/>
-  <i>Discord Durum ve Aktivite Entegrasyonu</i>
-</div>
+1. `spotify-setup.php` sayfasına gidin ve bağlantı durumunu kontrol edin
+2. Bağlantı kurulduğunda, Spotify'ı açın ve bir müzik çalmaya başlayın
+3. Ana sayfaya gidin ve birkaç saniye içinde müzik bilgilerinin güncellenmesini bekleyin
+4. Sorun yaşarsanız:
+   - Tarayıcı konsolunu açın ve hata mesajlarını kontrol edin
+   - `spotify-setup.php` sayfasından "Bağlantıyı Sıfırla" işlemini kullanın
+   - Token'ların yenilenip yenilenmediğini logs klasöründeki dosyalardan kontrol edin
 
-Lanyard API entegrasyonu aşağıdaki bilgileri gösterir:
-- Çevrimiçi durumu (çevrimiçi, boşta, rahatsız etmeyin, çevrimdışı)
-- Oynadığınız oyun veya kullandığınız uygulama
-- Platform bilgisi (masaüstü, web veya mobil)
+### Discord Entegrasyonu Testi
 
-```php
-// Discord durum güncelleme örneği (Lanyard API)
-function getDiscordStatus() {
-    // Discord kullanıcı ID'niz
-    $user_id = '1244181502795976775';
-    
-    // Lanyard API endpoint
-    $api_url = "https://api.lanyard.rest/v1/users/{$user_id}";
-    
-    // API çağrısı
-    $response = file_get_contents($api_url);
-    $data = json_decode($response, true);
-    
-    // Durum bilgilerini al
-    $status = $data['data']['discord_status'] ?? 'offline';
-    $activities = $data['data']['activities'] ?? [];
-    
-    return [
-        'status' => $status,
-        'game' => !empty($activities) ? $activities[0]['name'] : '',
-        'has_game' => !empty($activities)
-    ];
-}
-```
-
-### 🎵 Spotify Entegrasyonu
-
-<div align="center">
-  <img src="https://i.ibb.co/NvGsrMP/image.png" alt="Spotify Entegrasyonu" style="max-width: 720px; width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); margin: 20px auto;"/>
-  <br/>
-  <i>Spotify Şu Anda Çalınan Şarkı Entegrasyonu</i>
-</div>
-
-Spotify entegrasyonu kurulumu:
-
-1. [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/) üzerinden uygulama oluşturun
-2. Redirect URI: `https://your-site.com/spotify-callback.php`
-3. Client ID ve Client Secret bilgilerini `.env` dosyasına ekleyin
-4. Web sitesini ziyaret ederek Spotify yetkilendirmesini tamamlayın
-
-### 💻 GitHub Portföy Entegrasyonu
-
-GitHub portföy özelliği aşağıdaki gruplandırmalarla projeleri gösterir:
-- En çok yıldız alan projeler
-- Son güncellenen projeler
-- Aktif geliştirilen projeler
+1. Discord'u açın ve durumunuzu değiştirin (çevrimiçi, meşgul, vb.)
+2. Ana sayfada Discord durumunuzun güncellendiğini görmelisiniz (30 saniye kadar sürebilir)
+3. Bir oyun başlatın veya aktivite yapın; ana sayfada görünmelidir
 
 ## 🎨 Özelleştirme
 
@@ -231,6 +266,34 @@ Site görünümünü değiştirmek için:
 - Tema ve renkler: `modern-portfolio.css` içindeki CSS değişkenlerini düzenleyin
 - Animasyonlar: `script.js` dosyasındaki animasyon ayarlarını değiştirin
 - Arkaplan: `particles.js` konfigürasyonunu özelleştirin
+
+## 💡 Sorun Giderme
+
+### Spotify Bağlantı Sorunları
+
+- **Sorun:** "Şu anda müzik dinlenmiyor" hatası, müzik çalıyorken
+  - **Çözüm:** `spotify-setup.php` sayfasına gidin ve "Bağlantıyı Sıfırla" butonuna tıklayın, ardından hesabınızı yeniden bağlayın
+  
+- **Sorun:** Token yenileme hatası
+  - **Çözüm:** 
+    1. `spotify_config.json` dosyasını kontrol edin
+    2. Spotify Developer Dashboard'da Redirect URI'nin doğru yapılandırıldığından emin olun
+    3. Bağlantıyı sıfırlayın ve yeniden yetkilendirin
+
+### Discord Durum Gösterme Sorunları
+
+- **Sorun:** Discord durumu güncellenmiyor
+  - **Çözüm:**
+    1. Discord kullanıcı ID'nizin doğru girildiğinden emin olun
+    2. Lanyard Discord sunucusuna katılıp katılmadığınızı kontrol edin
+    3. Sayfayı yenileyin ve birkaç dakika bekleyin (Lanyard API güncellemeleri biraz zaman alabilir)
+
+### GitHub Portföy Sorunları
+
+- **Sorun:** Repolar görüntülenmiyor
+  - **Çözüm:**
+    1. GitHub token'ınızın doğru olduğundan emin olun
+    2. GitHub API istek sınırını aşıp aşmadığınızı kontrol edin
 
 ## 📄 Lisans
 

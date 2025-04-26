@@ -12,77 +12,94 @@ function logError($message) {
 }
 
 function getDiscordStatus() {
-    $status_paths = [
-        __DIR__ . '/discord-bot/logs/discord_status.json',
-        __DIR__ . '/logs/discord_status.json',
-    ];
+    $log_dir = 'logs';
+    if (!file_exists($log_dir)) {
+        mkdir($log_dir, 0755, true);
+    }
     
-    $status_file = null;
-    $api_data = null;
+
+    $user_id = getenv('DISCORD_USER_ID') ?: '1244181502795976775';
     
-    foreach ($status_paths as $path) {
-        if (file_exists($path)) {
-            logError("Discord durum dosyası bulundu: " . $path);
-            $status_file = $path;
-            
-            try {
-                $status_content = file_get_contents($status_file);
-                
-                if ($status_content === false) {
-                    logError("Discord durum dosyası okunamadı: " . $path);
-                    continue; // Diğer dosyayı deneyelim
-                }
-                
-                $api_data = json_decode($status_content, true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    logError("Discord JSON ayrıştırma hatası: " . json_last_error_msg() . " - Dosya: " . $path);
-                    continue; // Diğer dosyayı deneyelim
-                }
-                
-                if ($api_data && isset($api_data['status'])) {
+    $api_url = "https://api.lanyard.rest/v1/users/{$user_id}";
+    
+    try {
+        $response = @file_get_contents($api_url);
+        
+        if ($response === false) {
+            logError("API Error: Could not connect to Lanyard API");
+            return [
+                'status' => 'online',
+                'game' => '',
+                'has_game' => false,
+                'username' => 'kynux.dev',
+                'discriminator' => '0',
+                'last_updated' => date('H:i:s')
+            ];
+        }
+        
+        $data = json_decode($response, true);
+        
+        if (!$data || !isset($data['success']) || $data['success'] !== true) {
+            logError("API Error: Invalid response from Lanyard API: " . print_r($data, true));
+            return [
+                'status' => 'online',
+                'game' => '',
+                'has_game' => false,
+                'username' => 'kynux.dev',
+                'discriminator' => '0',
+                'last_updated' => date('H:i:s')
+            ];
+        }
+        
+        $discord_data = $data['data'];
+        
+        $game = '';
+        $has_game = false;
+        
+        if (!empty($discord_data['activities'])) {
+            foreach ($discord_data['activities'] as $activity) {
+                if (isset($activity['type']) && $activity['type'] === 0) {
+                    $game = $activity['name'] ?? '';
+                    $has_game = true;
                     break;
                 }
-            } catch (Exception $e) {
-                logError("Discord dosya okuma hatası: " . $e->getMessage() . " - Dosya: " . $path);
-                continue; // Diğer dosyayı deneyelim
             }
         }
-    }
-    
-    if ($api_data && isset($api_data['status'])) {
+        
         return [
-            'status' => $api_data['status'],
-            'game' => $api_data['game'] ?? '',
-            'has_game' => $api_data['has_game'] ?? false,
-            'username' => $api_data['username'] ?? 'kynux.dev',
-            'discriminator' => $api_data['discriminator'] ?? '0000',
-            'last_updated' => isset($api_data['last_updated']) ? date('H:i:s', strtotime($api_data['last_updated'])) : date('H:i:s')
+            'status' => $discord_data['discord_status'] ?? 'online',
+            'game' => $game,
+            'has_game' => $has_game,
+            'username' => $discord_data['discord_user']['username'] ?? 'kynux.dev',
+            'discriminator' => $discord_data['discord_user']['discriminator'] ?? '0',
+            'last_updated' => date('H:i:s')
+        ];
+        
+    } catch (Exception $e) {
+        logError("Discord API Error: " . $e->getMessage());
+        
+        return [
+            'status' => 'online',
+            'game' => '',
+            'has_game' => false,
+            'username' => 'kynux.dev',
+            'discriminator' => '0',
+            'last_updated' => date('H:i:s')
         ];
     }
-    
-    file_put_contents('logs/discord_debug.log', "Last check: " . date('Y-m-d H:i:s') . "\nStatus file missing or invalid\n", FILE_APPEND);
-    
-    return [
-        'status' => 'dnd',
-        'game' => '',
-        'has_game' => false,
-        'username' => 'kynux.dev',
-        'discriminator' => '0',
-        'last_updated' => date('H:i:s')
-    ];
 }
 
 function getSpotifyStatus() {
-    $env_file = __DIR__ . '/.env';
+    $spotify_config_file = 'spotify_config.json';
     $client_id = '';
     $client_secret = '';
     
-    if (file_exists($env_file)) {
-        $env_vars = parse_ini_file($env_file);
-        $client_id = $env_vars['SPOTIFY_CLIENT_ID'] ?? '';
-        $client_secret = $env_vars['SPOTIFY_CLIENT_SECRET'] ?? '';
+    if (file_exists($spotify_config_file)) {
+        $config_data = json_decode(file_get_contents($spotify_config_file), true);
+        $client_id = $config_data['client_id'] ?? '';
+        $client_secret = $config_data['client_secret'] ?? '';
     } else {
-        file_put_contents('logs/spotify_error.log', date('Y-m-d H:i:s') . " - .env dosyası bulunamadı.\n", FILE_APPEND);
+        file_put_contents('logs/spotify_error.log', date('Y-m-d H:i:s') . " - spotify_config.json dosyası bulunamadı.\n", FILE_APPEND);
     }
     
     if (empty($client_id) || empty($client_secret)) {
@@ -99,32 +116,8 @@ function getSpotifyStatus() {
         ];
     }
     
-    $spotify_config_file = 'spotify_config.json';
-    $refresh_token = '';
-    $config_data = [];
-    $access_token = '';
-    
-    if (file_exists($spotify_config_file)) {
-        $config_content = file_get_contents($spotify_config_file);
-        $config_data = json_decode($config_content, true);
-        $refresh_token = $config_data['refresh_token'] ?? '';
-        $access_token = $config_data['access_token'] ?? '';
-        $token_expiry = $config_data['token_expiry'] ?? 0;
-    } else {
-        return [
-            'is_playing' => false,
-            'song' => '',
-            'artist' => '',
-            'album_art' => '',
-            'progress_ms' => 0,
-            'duration_ms' => 0,
-            'progress_percent' => 0,
-            'auth_required' => true,
-            'auth_url' => $auth_url ?? '#',
-            'last_updated' => date('H:i:s')
-        ];
-    }
-    
+    $refresh_token = $config_data['refresh_token'] ?? '';
+    $access_token = $config_data['access_token'] ?? '';
     $token_expiry = $config_data['token_expiry'] ?? 0;
     $now = time();
     
@@ -205,7 +198,7 @@ function getSpotifyStatus() {
         
         file_put_contents('logs/spotify_player.log', date('Y-m-d H:i:s') . " - Player Response: " . print_r($player_data, true) . "\n", FILE_APPEND);
         
-        if (isset($player_data['is_playing']) && $player_data['is_playing'] && isset($player_data['item'])) {
+        if (isset($player_data['is_playing']) && $player_data['is_playing'] === true && isset($player_data['item'])) {
             $progress_ms = $player_data['progress_ms'] ?? 0;
             $duration_ms = $player_data['item']['duration_ms'] ?? 1;
             $progress_percent = ($progress_ms / $duration_ms) * 100;
@@ -248,45 +241,36 @@ function getSpotifyStatus() {
     }
 }
 
-ob_start();
-
 try {
     $discord_status = getDiscordStatus();
     $spotify_status = getSpotifyStatus();
     
-    $response = [];
-    
-    $discord = [];
-    $discord['status'] = $discord_status['status'] ?? 'dnd';
-    $discord['game'] = $discord_status['game'] ?? '';
-    $discord['has_game'] = $discord_status['has_game'] ?? false;
-    $discord['username'] = $discord_status['username'] ?? 'kynux.dev';
-    $discord['discriminator'] = $discord_status['discriminator'] ?? '0';
-    $discord['last_updated'] = date('H:i:s');
-    $response['discord'] = $discord;
-    
-    $spotify = [];
-    $spotify['is_playing'] = ($spotify_status['is_playing'] ?? false) ? true : false;
-    $spotify['song'] = $spotify_status['song'] ?? '';
-    $spotify['artist'] = $spotify_status['artist'] ?? '';
-    $spotify['album_art'] = $spotify_status['album_art'] ?? '';
-    $spotify['progress_ms'] = (int)($spotify_status['progress_ms'] ?? 0);
-    $spotify['duration_ms'] = (int)($spotify_status['duration_ms'] ?? 0);
-    $spotify['progress_percent'] = (float)($spotify_status['progress_percent'] ?? 0);
-    $spotify['last_updated'] = date('H:i:s');
-    $response['spotify'] = $spotify;
-    
-    $response['server_time'] = date('H:i:s');
-    
-    ob_end_clean();
+    $response = [
+        'discord' => [
+            'status' => $discord_status['status'] ?? 'dnd',
+            'game' => $discord_status['game'] ?? '',
+            'has_game' => $discord_status['has_game'] ?? false,
+            'username' => $discord_status['username'] ?? 'kynux.dev',
+            'discriminator' => $discord_status['discriminator'] ?? '0',
+            'last_updated' => date('H:i:s')
+        ],
+        'spotify' => [
+            'is_playing' => ($spotify_status['is_playing'] ?? false) ? true : false,
+            'song' => $spotify_status['song'] ?? '',
+            'artist' => $spotify_status['artist'] ?? '',
+            'album_art' => $spotify_status['album_art'] ?? '',
+            'progress_ms' => (int)($spotify_status['progress_ms'] ?? 0),
+            'duration_ms' => (int)($spotify_status['duration_ms'] ?? 0),
+            'progress_percent' => (float)($spotify_status['progress_percent'] ?? 0),
+            'last_updated' => date('H:i:s')
+        ],
+        'server_time' => date('H:i:s')
+    ];
     
     header('Content-Type: application/json; charset=utf-8');
-    
     echo json_encode($response);
     
 } catch (Exception $e) {
-    ob_end_clean();
-    
     logError("Genel API hatası: " . $e->getMessage());
     header('Content-Type: application/json; charset=utf-8');
     echo '{"error":"API işleme hatası: ' . $e->getMessage() . '"}';
