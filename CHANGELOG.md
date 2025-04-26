@@ -6,7 +6,7 @@
 
 **Platformumuzdaki tüm değişiklikleri, yenilikleri ve güncellemeleri takip edin**
 
-![Version](https://img.shields.io/badge/Platform%20Sürümü-v3.5.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/Platform%20Sürümü-v3.5.1-blue?style=for-the-badge)
 ![Last Updated](https://img.shields.io/badge/Son%20Güncelleme-26%20Nisan%202025-success?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Durum-Aktif-success?style=for-the-badge)
 
@@ -18,7 +18,56 @@ Bu değişiklik günlüğü, [Semantik Sürümlendirme](https://semver.org/lang/
 
 ---
 
-## [v3.5.0] - 2025-04-26
+## [v3.5.1] - 2025-04-26
+
+<table>
+<tr>
+<td width="60%">
+
+### 🔄 Önemli Değişiklikler
+
+- **Discord Bot Entegrasyonu Kaldırıldı**
+  - Discord bot tamamen kaldırıldı
+  - Lanyard API entegrasyonu eklendi (https://api.lanyard.rest)
+  - Discord durumu için yeni API üzerinden doğrudan bağlantı
+  - Daha hızlı ve güvenilir durum güncellemeleri
+  - Daha az sistem kaynağı kullanımı
+
+- **Güvenlik İyileştirmeleri**
+  - Session yönetimi eklendi
+  - CSRF token güvenliği artırıldı
+  - Hata yakalama mekanizmaları geliştirildi
+
+- **Performans Optimizasyonu**
+  - API çağrıları ve istekleri optimize edildi
+  - Dizin yapısı kontrolleri iyileştirildi
+  - Dosya işlemleri daha güvenli hale getirildi
+
+</td>
+<td>
+
+<h3>📊 Güncelleme Özeti</h3>
+
+<div align="center">
+<img src="https://i.ibb.co/4LW01vd/image.png" alt="Discord Entegrasyonu" width="300">
+<br>
+<small><i>Lanyard API ile Discord Durum Entegrasyonu</i></small>
+</div>
+
+<h4>🔍 Öne Çıkan Değişiklikler</h4>
+
+- ✅ Discord bot yerine Lanyard API
+- ✅ Daha hızlı durum güncellemeleri
+- ✅ Gelişmiş oturum güvenliği
+- ✅ URL formatı düzeltmeleri
+- ✅ CSS seçici uyumlulukları
+- ✅ Spotify token yönetimi iyileştirmesi
+
+</td>
+</tr>
+</table>
+
+## [v3.5.0] - 2025-04-20
 
 <table>
 <tr>
@@ -69,10 +118,10 @@ Bu değişiklik günlüğü, [Semantik Sürümlendirme](https://semver.org/lang/
 </tr>
 </table>
 
-### 🤖 Discord Bot Entegrasyonu v2.0.0
+### 🤖 Lanyard API ile Discord Entegrasyonu
 
 <details>
-<summary><b>Discord Bot Değişikliklerini Görüntüle</b></summary>
+<summary><b>Discord Entegrasyonu Değişikliklerini Görüntüle</b></summary>
 
 <div align="center">
   <img src="https://i.ibb.co/4LW01vd/image.png" alt="Discord Entegrasyonu" width="800"/>
@@ -80,117 +129,59 @@ Bu değişiklik günlüğü, [Semantik Sürümlendirme](https://semver.org/lang/
   <i>Discord Durum ve Aktivite Entegrasyonu</i>
 </div>
 
-#### 🔄 Önemli Değişiklikler
+#### 🔄 Mimari Değişiklikler
 
-- **Tamamen yeniden yazılmış Discord API entegrasyonu**
-  - Eski API erişim yöntemi kullanımdan kaldırıldı
-  - Discord API v10'a güncellendi
-  - Eski token formatı artık desteklenmiyor (yeni token almanız gerekecek)
+- **Discord Bot Tamamen Kaldırıldı**
+  - Discord bot ve ilgili modüller sistemden tamamen kaldırıldı
+  - Sistem kaynakları optimize edildi
+  - Bakım yükü azaltıldı
 
-- **Olay Dinleyicileri Yapısı Güncellendi**
-  - Olay tabanlı mimari tamamen yenilendi
-  - `listenForEvents()` metodunu kullanmak yerine, artık tekil olay dinleyicileri oluşturulmalı
+- **Lanyard API Entegrasyonu**
+  - Lanyard API (https://api.lanyard.rest) üzerinden doğrudan bağlantı
+  - Tek bir endpoint ile gerçek zamanlı durum bilgisi
+  - Basit ve güvenilir API çağrıları
+  - Token ve bot gerekmeden çalışır
 
-- **Ortam Değişkenleri Güncellendi**
-  - `.env` yapısı değiştirildi - yeni değişken isimleri eklendi
-  - Eski `DISCORD_STATUS_PATH` kaldırıldı, otomatik yapılandırma kullanılıyor
+#### ✨ Entegrasyon Özellikleri
 
-#### ✨ Yeni Özellikler
+- **Gerçek Zamanlı Durum Takibi**
+  - Çevrimiçi, boşta, rahatsız etmeyin, çevrimdışı durumları
+  - Oyun ve aktivite bilgileri
+  - Platform bilgisi (masaüstü, web, mobil)
 
-- **Zengin Durum Gösterimi**
-  - Spotify entegrasyonu ile şarkı bilgileri dahil edildi
-  - Oyun veya uygulama aktiviteleri için resimler ve bağlantılar eklendi
-  - Özel durum mesajları desteği eklendi
+- **Minimum Yapılandırma**
+  - Sadece Discord kullanıcı ID gerekli
+  - Ek yapılandırma veya token gerektirmez
+  - Otomatik bağlantı ve yeniden deneme
 
-- **Çoklu Hesap Desteği**
-  - Artık birden fazla Discord hesabı için durum takibi yapılabilir
-  - Her hesap için ayrı yapılandırma oluşturulabilir
+#### 🔧 Kullanım Örneği
 
-- **Durum Webhook Bildirimleri**
-  - Durum değişikliklerinde webhook ile bildirim gönderebilme
-  - Discord, Slack ve Microsoft Teams entegrasyonları eklendi
+```php
+// Discord kullanıcı ID'niz
+$user_id = '1244181502795976775';
 
-- **Gerçek Zamanlı İstatistikler**
-  - Sunucu bağlantı durumu istatistikleri
-  - Mesaj sayısı ve aktivite takibi
-  - Günlük/haftalık/aylık aktivite grafikleri
+// Lanyard API endpoint
+$api_url = "https://api.lanyard.rest/v1/users/{$user_id}";
 
-#### 🔧 İyileştirmeler ve 🐛 Hata Düzeltmeleri
+// API çağrısı
+$response = file_get_contents($api_url);
+$data = json_decode($response, true);
 
-<table>
-<tr>
-<td>
-
-**Performans Optimize Edildi**
-- Yeniden bağlantı kurma hızı %40 artırıldı
-- Bellek kullanımı %25 azaltıldı
-- CPU kullanımı optimize edildi
-
-**Kod Yapısı İyileştirildi**
-- Kod modüler hale getirildi
-- Promise tabanlı yapıya geçildi
-- TypeScript tip tanımları eklendi
-
-</td>
-<td>
-
-**Bağlantı Sorunları Giderildi**
-- Discord API sınırlamalarında oluşan hata düzeltildi
-- WebSocket bağlantısı düşmesi sorunu çözüldü
-- Gateway timeout hatası giderildi
-
-**Arayüz Hataları Giderildi**
-- Durum göstergesinde yanlış renk kullanımı düzeltildi
-- Oyun aktivitelerinde ikon gösterilmeme sorunu çözüldü
-- Mobil cihazlarda görünüm bozukluğu düzeltildi
-
-</td>
-</tr>
-</table>
-
-#### 🔒 Güvenlik Güncellemeleri
-
-- **Token Yönetimi Güvenliği Artırıldı**
-  - Token şifreleme eklendi
-  - Güvenli token depolama sistemi
-  - Otomatik token yenileme mekanizması
-
-- **API İstekleri Güvenliği Artırıldı**
-  - Rate limiting koruması eklendi
-  - TLS 1.3 desteği eklendi
-  - API isteklerinde imza doğrulama eklendi
-
-#### 🔨 Yapılandırma Değişiklikleri
-
-```javascript
-// .env dosyasına ekleyin
-DISCORD_BOT_TOKEN="discord_token_buraya"
-DISCORD_CLIENT_ID="client_id_buraya"
-DISCORD_USER_ID="discord_user_id_buraya"
-DISCORD_GUILD_ID="optional_server_id"
-DISCORD_STATUS_WEBHOOK="optional_webhook_url"
-
-// Gelişmiş Yapılandırma
-DISCORD_REFRESH_INTERVAL=30000
-DISCORD_MAX_RECONNECT_ATTEMPTS=5
-DISCORD_SECURE_MODE=true
+// Durum bilgilerini al
+$status = $data['data']['discord_status'] ?? 'offline';
+$activities = $data['data']['activities'] ?? [];
 ```
 
-#### 📝 Örnek Kod Kullanımı
+#### 🔒 Güvenlik ve Performans
 
-```javascript
-// Discord durum güncelleme örneği
-client.on('presenceUpdate', async (oldPresence, newPresence) => {
-  if (newPresence.userId === process.env.DISCORD_USER_ID) {
-    // Durum bilgilerini güncelle
-    const status = newPresence.status;
-    const activity = newPresence.activities[0]?.name || '';
-    
-    // JSON dosyasına kaydet
-    await updateStatusFile({ status, activity });
-  }
-});
-```
+- **Daha Az API İsteği**
+  - Lanyard, Discord API rate limitlerine tabi değil
+  - Daha hızlı ve güvenilir yanıt süreleri
+
+- **Daha Az Bağımlılık**
+  - Bot token ve yetkileri gerektirmez
+  - Hata olasılığı azaltıldı
+  - Bakım ve izleme yükü azaltıldı
 
 </details>
 

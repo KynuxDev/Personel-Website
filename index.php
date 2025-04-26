@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 function getGithubRepositories($username) {
     $url = "https://api.github.com/users/{$username}/repos";
     
@@ -77,51 +79,88 @@ function getGithubUserInfo($username) {
 }
 
 function getDiscordStatus() {
-    $status_paths = [
-        'discord-bot/logs/discord_status.json',
-        'logs/discord_status.json',
-    ];
-    
-    $status_file = null;
-    foreach ($status_paths as $path) {
-        if (file_exists($path)) {
-            $status_file = $path;
-            break;
-        }
+    // logs dizininin varlığını kontrol et ve yoksa oluştur
+    $log_dir = 'logs';
+    if (!file_exists($log_dir)) {
+        mkdir($log_dir, 0755, true);
     }
     
-    if ($status_file) {
-        try {
-            $status_content = file_get_contents($status_file);
-            $status_data = json_decode($status_content, true);
-            
-            if ($status_data && isset($status_data['status'])) {
-                return [
-                    'status' => $status_data['status'],
-                    'game' => $status_data['game'] ?? '',
-                    'has_game' => $status_data['has_game'] ?? false,
-                    'username' => $status_data['username'] ?? 'kynux.dev',
-                    'discriminator' => $status_data['discriminator'] ?? '0000',
-                    'last_updated' => $status_data['last_updated'] ?? date('Y-m-d H:i:s')
-                ];
-            }
-        } catch (Exception $e) {
-            $log_dir = 'logs';
-            if (!file_exists($log_dir)) {
-                mkdir($log_dir, 0755, true);
-            }
-            file_put_contents('logs/discord_error.log', date('Y-m-d H:i:s') . " - JSON Error: " . $e->getMessage() . "\n", FILE_APPEND);
-        }
-    }
+    // Discord user ID
+    $user_id = '1244181502795976775';
     
-    return [
-        'status' => 'online',
-        'game' => '',
-        'has_game' => false,
-        'username' => 'kynux.dev',
-        'discriminator' => '0000',
-        'last_updated' => date('Y-m-d H:i:s')
-    ];
+    // Lanyard API kullanarak Discord durumunu al
+    $api_url = "https://api.lanyard.rest/v1/users/{$user_id}";
+    
+    try {
+        $response = @file_get_contents($api_url);
+        
+        if ($response === false) {
+            // API'ye bağlanılamadı, varsayılan durum döndür
+            file_put_contents('logs/discord_error.log', date('Y-m-d H:i:s') . " - API Error: Could not connect to Lanyard API\n", FILE_APPEND);
+            return [
+                'status' => 'online',
+                'game' => '',
+                'has_game' => false,
+                'username' => 'kynux.dev',
+                'discriminator' => '0',
+                'last_updated' => date('Y-m-d H:i:s')
+            ];
+        }
+        
+        $data = json_decode($response, true);
+        
+        if (!$data || !isset($data['success']) || $data['success'] !== true) {
+            // API geçersiz yanıt verdi, varsayılan durum döndür
+            file_put_contents('logs/discord_error.log', date('Y-m-d H:i:s') . " - API Error: Invalid response from Lanyard API\n", FILE_APPEND);
+            return [
+                'status' => 'online',
+                'game' => '',
+                'has_game' => false,
+                'username' => 'kynux.dev',
+                'discriminator' => '0',
+                'last_updated' => date('Y-m-d H:i:s')
+            ];
+        }
+        
+        // API'den başarılı yanıt
+        $discord_data = $data['data'];
+        
+        // Oyun aktivitesini kontrol et
+        $game = '';
+        $has_game = false;
+        
+        if (!empty($discord_data['activities'])) {
+            foreach ($discord_data['activities'] as $activity) {
+                if (isset($activity['type']) && $activity['type'] === 0) { // Type 0 = Playing
+                    $game = $activity['name'] ?? '';
+                    $has_game = true;
+                    break;
+                }
+            }
+        }
+        
+        return [
+            'status' => $discord_data['discord_status'] ?? 'online',
+            'game' => $game,
+            'has_game' => $has_game,
+            'username' => $discord_data['discord_user']['username'] ?? 'kynux.dev',
+            'discriminator' => $discord_data['discord_user']['discriminator'] ?? '0',
+            'last_updated' => date('Y-m-d H:i:s')
+        ];
+        
+    } catch (Exception $e) {
+        file_put_contents('logs/discord_error.log', date('Y-m-d H:i:s') . " - Error: " . $e->getMessage() . "\n", FILE_APPEND);
+        
+        // Hata durumunda varsayılan değerleri döndür
+        return [
+            'status' => 'online',
+            'game' => '',
+            'has_game' => false,
+            'username' => 'kynux.dev',
+            'discriminator' => '0',
+            'last_updated' => date('Y-m-d H:i:s')
+        ];
+    }
 }
 
 function getSpotifyStatus() {
@@ -346,9 +385,9 @@ $api_setup_info = "";
             <li><a href="#contact">İletişim</a></li>
         </ul>
         <div class="social-links">
-            <a href="https://github.com/kynux.dev" target="_blank"><i class="fab fa-github"></i></a>
-            <a href="#"><i class="fab fa-linkedin"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="<?php echo getenv('GITHUB_URL') ?: 'https://github.com/KynuxDev'; ?>" target="_blank"><i class="fab fa-github"></i></a>
+            <a href="<?php echo getenv('LINKEDIN_URL') ?: '#'; ?>" target="_blank"><i class="fab fa-linkedin"></i></a>
+            <a href="<?php echo getenv('TWITTER_URL') ?: '#'; ?>" target="_blank"><i class="fab fa-twitter"></i></a>
         </div>
     </nav>
 
@@ -721,22 +760,22 @@ $api_setup_info = "";
                 <div class="contact-info" data-aos="fade-up" data-aos-delay="200">
                     <div class="contact-item">
                         <i class="fas fa-envelope"></i>
-                        <a href="mailto:iletisim@kynux.dev.com">iletisim@kynux.dev.com</a>
+                        <a href="mailto:<?php echo getenv('CONTACT_EMAIL') ?: 'iletisim@kynux.dev.com'; ?>"><?php echo getenv('CONTACT_EMAIL') ?: 'iletisim@kynux.dev.com'; ?></a>
                     </div>
                     
                     <div class="contact-item">
                         <i class="fab fa-github"></i>
-                        <a href="https://github.com/kynux.dev" target="_blank">github.com/kynux.dev</a>
+                        <a href="<?php echo getenv('GITHUB_URL') ?: 'https://github.com/KynuxDev'; ?>" target="_blank"><?php echo str_replace('https://', '', getenv('GITHUB_URL')) ?: 'github.com/KynuxDev'; ?></a>
                     </div>
                     
                     <div class="contact-item">
                         <i class="fab fa-linkedin"></i>
-                        <a href="https://linkedin.com/in/kynux.dev" target="_blank">linkedin.com/in/kynux.dev</a>
+                        <a href="<?php echo getenv('LINKEDIN_URL') ?: 'https://linkedin.com/in/KynuxDev'; ?>" target="_blank"><?php echo str_replace('https://', '', getenv('LINKEDIN_URL')) ?: 'linkedin.com/in/KynuxDev'; ?></a>
                     </div>
                     
                     <div class="contact-item">
                         <i class="fab fa-twitter"></i>
-                        <a href="https://twitter.com/kynux.dev" target="_blank">@kynux.dev</a>
+                        <a href="<?php echo getenv('TWITTER_URL') ?: 'https://twitter.com/KynuxDev'; ?>" target="_blank"><?php echo getenv('TWITTER_URL') ? '@'.basename(getenv('TWITTER_URL')) : '@KynuxDev'; ?></a>
                     </div>
                 </div>
                 
@@ -782,9 +821,9 @@ $api_setup_info = "";
                 </div>
                 
                 <div class="footer-social">
-                    <a href="https://github.com/kynux.dev" target="_blank"><i class="fab fa-github"></i></a>
-                    <a href="#"><i class="fab fa-linkedin"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="<?php echo getenv('GITHUB_URL') ?: 'https://github.com/KynuxDev'; ?>" target="_blank"><i class="fab fa-github"></i></a>
+                    <a href="<?php echo getenv('LINKEDIN_URL') ?: '#'; ?>" target="_blank"><i class="fab fa-linkedin"></i></a>
+                    <a href="<?php echo getenv('TWITTER_URL') ?: '#'; ?>" target="_blank"><i class="fab fa-twitter"></i></a>
                 </div>
             </div>
             

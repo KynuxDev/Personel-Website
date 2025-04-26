@@ -1,8 +1,8 @@
-# 🚀 KynuxDev Kişisel Portföy (EXAMPLE)
+# 🚀 KynuxDev Kişisel Portföy v3.5.1
 
 <div align="center">
   
-  ![Banner](https://i.ibb.co/JRWpKCcM/s.png)
+  <img src="https://i.ibb.co/JRWpKCcM/s.png" alt="KynuxDev Logo" width="320" class="main-logo" style="margin: 20px auto; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.8));" />
 
   Modern ve interaktif teknolojilerle geliştirilmiş profesyonel kişisel web sitesi
 
@@ -164,37 +164,48 @@ kynux-portfolio/
 
 ## 🔌 Platform Entegrasyonları
 
-### 🎮 Discord Entegrasyonu
+### 🎮 Discord Entegrasyonu (Lanyard API)
 
 <div align="center">
-  <img src="https://i.ibb.co/4LW01vd/image.png" alt="Discord Entegrasyonu" width="800"/>
+  <img src="https://i.ibb.co/4LW01vd/image.png" alt="Discord Entegrasyonu" style="max-width: 720px; width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); margin: 20px auto;"/>
   <br/>
   <i>Discord Durum ve Aktivite Entegrasyonu</i>
 </div>
 
-Discord entegrasyonu aşağıdaki bilgileri gösterir:
+Lanyard API entegrasyonu aşağıdaki bilgileri gösterir:
 - Çevrimiçi durumu (çevrimiçi, boşta, rahatsız etmeyin, çevrimdışı)
 - Oynadığınız oyun veya kullandığınız uygulama
-- Oturum süresi ve aktivite bilgileri
+- Platform bilgisi (masaüstü, web veya mobil)
 
-```javascript
-// Discord durum güncelleme örneği
-client.on('presenceUpdate', async (oldPresence, newPresence) => {
-  if (newPresence.userId === process.env.DISCORD_USER_ID) {
-    // Durum bilgilerini güncelle
-    const status = newPresence.status;
-    const activity = newPresence.activities[0]?.name || '';
+```php
+// Discord durum güncelleme örneği (Lanyard API)
+function getDiscordStatus() {
+    // Discord kullanıcı ID'niz
+    $user_id = '1244181502795976775';
     
-    // JSON dosyasına kaydet
-    await updateStatusFile({ status, activity });
-  }
-});
+    // Lanyard API endpoint
+    $api_url = "https://api.lanyard.rest/v1/users/{$user_id}";
+    
+    // API çağrısı
+    $response = file_get_contents($api_url);
+    $data = json_decode($response, true);
+    
+    // Durum bilgilerini al
+    $status = $data['data']['discord_status'] ?? 'offline';
+    $activities = $data['data']['activities'] ?? [];
+    
+    return [
+        'status' => $status,
+        'game' => !empty($activities) ? $activities[0]['name'] : '',
+        'has_game' => !empty($activities)
+    ];
+}
 ```
 
 ### 🎵 Spotify Entegrasyonu
 
 <div align="center">
-  <img src="https://i.ibb.co/NvGsrMP/image.png" alt="Spotify Entegrasyonu" width="800"/>
+  <img src="https://i.ibb.co/NvGsrMP/image.png" alt="Spotify Entegrasyonu" style="max-width: 720px; width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); margin: 20px auto;"/>
   <br/>
   <i>Spotify Şu Anda Çalınan Şarkı Entegrasyonu</i>
 </div>
@@ -244,6 +255,6 @@ Sorularınız veya önerileriniz mi var? Benimle iletişime geçin:
 <div align="center">
   <p>© 2025 KynuxDev. Tüm hakları saklıdır.</p>
   <p>
-    <img src="https://i.ibb.co/JRWpKCcM/s.png" alt="Logo" width="40" height="40"/>
+    <img src="https://i.ibb.co/JRWpKCcM/s.png" alt="Logo" width="80" height="80" style="filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6)); margin: 10px auto;"/>
   </p>
 </div>
