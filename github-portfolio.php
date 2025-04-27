@@ -1,94 +1,100 @@
 <?php
+function fetch_with_curl($url, $options = []) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15); 
+    curl_setopt($ch, CURLOPT_USERAGENT, $options['user_agent'] ?? 'PHP-GitHub-Portfolio/1.0');
+    if (!empty($options['headers'])) {
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $options['headers']);
+    }
+    
+    $response_body = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error_num = curl_errno($ch);
+    $curl_error_msg = curl_error($ch);
+    curl_close($ch);
+
+    if ($curl_error_num) {
+        error_log("cURL Error ({$curl_error_num}) fetching {$url}: {$curl_error_msg}");
+        return ['error' => "GitHub API bağlantı hatası.", 'http_code' => $http_code];
+    }
+    $decoded_response = json_decode($response_body, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log("JSON Decode Error fetching {$url}. HTTP Code: {$http_code}. Response: " . substr($response_body, 0, 500));
+        return ['error' => "GitHub API yanıtı çözümlenemedi.", 'http_code' => $http_code];
+    }
+    if ($http_code >= 400) {
+        error_log("HTTP Error {$http_code} fetching {$url}. Response: " . json_encode($decoded_response));
+        $api_message = $decoded_response['message'] ?? 'Bilinmeyen API hatası';
+        return ['error' => "GitHub API hatası ({$http_code}): " . $api_message, 'http_code' => $http_code];
+    }
+    return $decoded_response;
+}
+
 function getGithubRepositories($username) {
     $url = "https://api.github.com/users/{$username}/repos";
-    
-    $options = [
-        'http' => [
-            'method' => 'GET',
-            'header' => [
-                'User-Agent: PHP GitHub Portfolio'
-            ]
-        ]
-    ];
-    
-    $context = stream_context_create($options);
-    
-    $response = @file_get_contents($url, false, $context);
-    
-    if ($response === false) {
-        return ['error' => 'GitHub API\'sine bağlanılamadı.'];
-    }
-    
-    $repositories = json_decode($response, true);
-    
-    if (isset($repositories['message'])) {
-        return ['error' => $repositories['message']];
-    }
-    
-    return $repositories;
-}
-
-function sortRepositories($repositories, $sortBy = 'updated') {
-    usort($repositories, function($a, $b) use ($sortBy) {
-        if ($sortBy === 'stars') {
-            return $b['stargazers_count'] - $a['stargazers_count'];
-        } else if ($sortBy === 'updated') {
-            return strtotime($b['updated_at']) - strtotime($a['updated_at']);
-        } else if ($sortBy === 'created') {
-            return strtotime($b['created_at']) - strtotime($a['created_at']);
-        }
-        return 0;
-    });
-    
-    return $repositories;
-}
-
-function formatDate($dateString) {
-    $date = new DateTime($dateString);
-    return $date->format('d.m.Y');
+    return fetch_with_curl($url, ['user_agent' => 'PHP-GitHub-Portfolio/1.0']);
 }
 
 function getGithubUserInfo($username) {
     $url = "https://api.github.com/users/{$username}";
-    
-    $options = [
-        'http' => [
-            'method' => 'GET',
-            'header' => [
-                'User-Agent: PHP GitHub Portfolio'
-            ]
-        ]
-    ];
-    
-    $context = stream_context_create($options);
-    $response = @file_get_contents($url, false, $context);
-    
-    if ($response === false) {
-        return ['error' => 'GitHub API\'sine bağlanılamadı.'];
-    }
-    
-    $userInfo = json_decode($response, true);
-    
-    if (isset($userInfo['message'])) {
-        return ['error' => $userInfo['message']];
-    }
-    
-    return $userInfo;
+    return fetch_with_curl($url, ['user_agent' => 'PHP-GitHub-Portfolio/1.0']);
 }
 
-$github_username = 'KynuxDev';
+function formatDate($dateString) {
+    if (empty($dateString)) return '';
+    try {
+        $date = new DateTimeImmutable($dateString);
+        return $date->format('d.m.Y');
+    } catch (Exception $e) {
+        error_log("Error formatting date '{$dateString}': " . $e->getMessage());
+        return 'Geçersiz Tarih'; 
+    }
+}
 
-$sort_by = isset($_GET['sort']) ? $_GET['sort'] : 'updated';
+function sortRepositories($repositories, $sortBy = 'updated') {
+    $validSorts = ['updated', 'stars', 'created'];
+    $sortBy = in_array($sortBy, $validSorts) ? $sortBy : 'updated';
 
-$repositories = getGithubRepositories($github_username);
-$userInfo = getGithubUserInfo($github_username);
+    usort($repositories, function($a, $b) use ($sortBy) {
+        switch ($sortBy) {
+            case 'stars':
+                return ($b['stargazers_count'] ?? 0) - ($a['stargazers_count'] ?? 0);
+            case 'created':
+                return (strtotime($b['created_at'] ?? 0) ?: 0) - (strtotime($a['created_at'] ?? 0) ?: 0);
+            case 'updated':
+            default:
+                return (strtotime($b['updated_at'] ?? 0) ?: 0) - (strtotime($a['updated_at'] ?? 0) ?: 0);
+        }
+    });
+    return $repositories;
+}
+
+
+$github_username = 'KynuxDev'; 
+
+$allowed_sort_options = ['updated', 'stars', 'created'];
+$sort_by = 'updated'; 
+$sort_input = filter_input(INPUT_GET, 'sort', FILTER_SANITIZE_STRING);
+if ($sort_input && in_array($sort_input, $allowed_sort_options)) {
+    $sort_by = $sort_input;
+}
+
+$repositories_data = getGithubRepositories($github_username);
+$userInfo_data = getGithubUserInfo($github_username);
 
 $error = null;
-if (isset($repositories['error'])) {
-    $error = $repositories['error'];
-    $repositories = [];
+$repositories = [];
+$userInfo = [];
+
+if (isset($repositories_data['error'])) {
+    $error = $repositories_data['error'];
+} elseif (isset($userInfo_data['error'])) {
+    $error = $userInfo_data['error'];
 } else {
-    $repositories = sortRepositories($repositories, $sort_by);
+    $repositories = sortRepositories($repositories_data, $sort_by);
+    $userInfo = $userInfo_data;
 }
 
 ?>
@@ -97,13 +103,12 @@ if (isset($repositories['error'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Portföyü - <?php echo htmlspecialchars($github_username); ?></title>
+    <title>GitHub Portföyü - <?= htmlspecialchars($github_username); ?></title>
     <link rel="stylesheet" href="modern-portfolio.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- HEADER BÖLÜMÜ -->
     <header class="site-header">
         <div class="logo">
             <a href="index.php">Kynux<span>Dev</span></a>
@@ -126,24 +131,22 @@ if (isset($repositories['error'])) {
         </div>
     </header>
 
-    <!-- ANA İÇERİK -->
     <div class="container">
         <?php if ($error): ?>
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
-                <p><?php echo htmlspecialchars($error); ?></p>
+                <p><?= htmlspecialchars($error); ?></p>
             </div>
         <?php else: ?>
-            <!-- KONTROLLER -->
             <div class="controls">
                 <div class="sort-options">
-                    <a href="?sort=updated" class="<?php echo $sort_by === 'updated' ? 'active' : ''; ?>">
+                     <a href="?sort=updated" class="<?= $sort_by === 'updated' ? 'active' : ''; ?>">
                         <i class="fas fa-clock"></i> Son Güncellenen
                     </a>
-                    <a href="?sort=stars" class="<?php echo $sort_by === 'stars' ? 'active' : ''; ?>">
+                    <a href="?sort=stars" class="<?= $sort_by === 'stars' ? 'active' : ''; ?>">
                         <i class="fas fa-star"></i> Yıldızlar
                     </a>
-                    <a href="?sort=created" class="<?php echo $sort_by === 'created' ? 'active' : ''; ?>">
+                    <a href="?sort=created" class="<?= $sort_by === 'created' ? 'active' : ''; ?>">
                         <i class="fas fa-calendar-plus"></i> Yeni Eklenen
                     </a>
                 </div>
@@ -153,68 +156,66 @@ if (isset($repositories['error'])) {
                 </div>
             </div>
             
-            <!-- PROFİL BİLGİSİ -->
             <header>
                 <div class="profile">
                     <?php if (!isset($userInfo['error'])): ?>
                         <h1 class="profile-name">GitHub Portföyüm</h1>
                         
                         <div class="profile-bio">
-                            <img 
-                                src="<?php echo isset($userInfo['avatar_url']) ? htmlspecialchars($userInfo['avatar_url']) : 'https://avatars.githubusercontent.com/u/default?v=4'; ?>" 
-                                alt="<?php echo htmlspecialchars($github_username); ?> profil resmi" 
+                            <img
+                                src="<?= htmlspecialchars($userInfo['avatar_url'] ?? 'https://avatars.githubusercontent.com/u/default?v=4'); ?>"
+                                alt="<?= htmlspecialchars($github_username); ?> profil resmi"
                                 class="profile-avatar"
                             >
-                            <h2><?php echo isset($userInfo['name']) ? htmlspecialchars($userInfo['name']) : 'Berk'; ?></h2>
-                            <p class="username">@<?php echo htmlspecialchars($github_username); ?></p>
-                            <p class="bio"><?php echo isset($userInfo['bio']) ? htmlspecialchars($userInfo['bio']) : 'Kendi çapında yazılımcı'; ?></p>
+                            <h2><?= htmlspecialchars($userInfo['name'] ?? 'Berk'); ?></h2>
+                            <p class="username">@<?= htmlspecialchars($github_username); ?></p>
+                            <p class="bio"><?= htmlspecialchars($userInfo['bio'] ?? 'Kendi çapında yazılımcı'); ?></p>
                         </div>
-                        
+
                         <div class="profile-stats">
                             <div class="stat">
                                 <i class="fas fa-users"></i>
-                                <span><?php echo htmlspecialchars($userInfo['followers']); ?></span>
+                                <span><?= htmlspecialchars($userInfo['followers'] ?? 0); ?></span>
                                 <span>Takipçi</span>
                             </div>
                             <div class="stat">
                                 <i class="fas fa-user-plus"></i>
-                                <span><?php echo htmlspecialchars($userInfo['following']); ?></span>
+                                <span><?= htmlspecialchars($userInfo['following'] ?? 0); ?></span>
                                 <span>Takip Edilen</span>
                             </div>
                             <div class="stat">
                                 <i class="fas fa-code-branch"></i>
-                                <span><?php echo count($repositories); ?></span>
+                                <span><?= count($repositories); ?></span>
                                 <span>Repo</span>
                             </div>
                         </div>
                         
                         <div class="profile-links">
                             <?php if (!empty($userInfo['html_url'])): ?>
-                                <a href="<?php echo htmlspecialchars($userInfo['html_url']); ?>" target="_blank" class="profile-link">
+                                <a href="<?= htmlspecialchars($userInfo['html_url']); ?>" target="_blank" class="profile-link">
                                     <i class="fab fa-github"></i> GitHub Profili
                                 </a>
                             <?php endif; ?>
-                            
+
                             <?php if (!empty($userInfo['blog'])): ?>
-                                <a href="<?php echo htmlspecialchars($userInfo['blog']); ?>" target="_blank" class="profile-link">
+                                <a href="<?= htmlspecialchars($userInfo['blog']); ?>" target="_blank" class="profile-link">
                                     <i class="fas fa-globe"></i> Web Sitesi
                                 </a>
                             <?php endif; ?>
-                            
+
                             <?php if (!empty($userInfo['location'])): ?>
                                 <div class="profile-location">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    <span><?php echo htmlspecialchars($userInfo['location']); ?></span>
+                                    <span><?= htmlspecialchars($userInfo['location']); ?></span>
                                 </div>
                             <?php endif; ?>
                         </div>
                     <?php else: ?>
-                        <h1 class="profile-name"><?php echo htmlspecialchars($github_username); ?></h1>
+                        <h1 class="profile-name"><?= htmlspecialchars($github_username); ?></h1>
                     <?php endif; ?>
                 </div>
             </header>
             
-            <!-- KATEGORİ KUTULARI -->
             <div class="section-container">
                 <div id="aktif-projeler" class="section-box">
                     <div class="section-icon">
@@ -241,7 +242,6 @@ if (isset($repositories['error'])) {
                 </div>
             </div>
             
-            <!-- AKTİF PROJELER BÖLÜMÜ -->
             <div class="section-header">
                 <h3 id="aktif-projeler-liste">
                     <i class="fas fa-code"></i>
@@ -258,61 +258,52 @@ if (isset($repositories['error'])) {
                 ?>
                 <div class="repo-card">
                     <div class="repo-name">
-                        <a href="<?php echo htmlspecialchars($repo['html_url']); ?>" target="_blank">
-                            <?php echo htmlspecialchars($repo['name']); ?>
+                        <a href="<?= htmlspecialchars($repo['html_url'] ?? '#'); ?>" target="_blank">
+                            <?= htmlspecialchars($repo['name'] ?? 'N/A'); ?>
                         </a>
                     </div>
                     <div class="repo-description">
-                        <?php echo !empty($repo['description']) ? htmlspecialchars($repo['description']) : 'Bu proje için henüz açıklama eklenmemiş.'; ?>
+                        <?= !empty($repo['description']) ? htmlspecialchars($repo['description']) : 'Bu proje için henüz açıklama eklenmemiş.'; ?>
                     </div>
                     <div class="repo-stats">
                         <span>
                             <i class="fas fa-star"></i>
-                            <?php echo $repo['stargazers_count']; ?>
+                            <?= htmlspecialchars($repo['stargazers_count'] ?? 0); ?>
                         </span>
                         <span>
                             <i class="fas fa-code-branch"></i>
-                            <?php echo $repo['forks_count']; ?>
+                            <?= htmlspecialchars($repo['forks_count'] ?? 0); ?>
                         </span>
                         <span>
                             <i class="fas fa-eye"></i>
-                            <?php echo $repo['watchers_count']; ?>
+                            <?= htmlspecialchars($repo['watchers_count'] ?? 0); ?>
                         </span>
                     </div>
-                    <?php if (!empty($repo['language'])): ?>
+                    <?php
+                    $language = $repo['language'] ?? null;
+                    if ($language):
+                        $colors = [
+                            'JavaScript' => '#f1e05a', 'TypeScript' => '#2b7489', 'HTML' => '#e34c26',
+                            'CSS' => '#563d7c', 'PHP' => '#4F5D95', 'Python' => '#3572A5',
+                            'Java' => '#b07219', 'C#' => '#178600', 'C++' => '#f34b7d',
+                            'Ruby' => '#701516', 'Go' => '#00ADD8', 'Swift' => '#ffac45',
+                            'Kotlin' => '#F18E33', 'Rust' => '#dea584'
+                        ];
+                        $languageColor = $colors[$language] ?? '#999';
+                    ?>
                     <div class="repo-language">
-                        <span class="language-color" style="background-color: 
-                            <?php 
-                            $colors = [
-                                'JavaScript' => '#f1e05a',
-                                'TypeScript' => '#2b7489',
-                                'HTML' => '#e34c26',
-                                'CSS' => '#563d7c',
-                                'PHP' => '#4F5D95',
-                                'Python' => '#3572A5',
-                                'Java' => '#b07219',
-                                'C#' => '#178600',
-                                'C++' => '#f34b7d',
-                                'Ruby' => '#701516',
-                                'Go' => '#00ADD8',
-                                'Swift' => '#ffac45',
-                                'Kotlin' => '#F18E33',
-                                'Rust' => '#dea584'
-                            ];
-                            echo isset($colors[$repo['language']]) ? $colors[$repo['language']] : '#999';
-                            ?>
-                        "></span>
-                        <?php echo htmlspecialchars($repo['language']); ?>
+                        <span class="language-color" style="background-color: <?= htmlspecialchars($languageColor); ?>"></span>
+                        <?= htmlspecialchars($language); ?>
                     </div>
                     <?php endif; ?>
                     <div class="repo-dates">
                         <span>
-                            <i class="fas fa-calendar-plus"></i> 
-                            <?php echo formatDate($repo['created_at']); ?>
+                            <i class="fas fa-calendar-plus"></i>
+                            <?= htmlspecialchars(formatDate($repo['created_at'] ?? '')); ?>
                         </span>
                         <span>
-                            <i class="fas fa-sync-alt"></i> 
-                            <?php echo formatDate($repo['updated_at']); ?>
+                            <i class="fas fa-sync-alt"></i>
+                            <?= htmlspecialchars(formatDate($repo['updated_at'] ?? '')); ?>
                         </span>
                     </div>
                 </div>
@@ -328,7 +319,6 @@ if (isset($repositories['error'])) {
                 <?php endif; ?>
             </div>
             
-            <!-- YILDIZLI PROJELER BÖLÜMÜ -->
             <div class="section-header">
                 <h3 id="yildizli-projeler-liste">
                     <i class="fas fa-star"></i>
@@ -352,61 +342,52 @@ if (isset($repositories['error'])) {
                 ?>
                 <div class="repo-card">
                     <div class="repo-name">
-                        <a href="<?php echo htmlspecialchars($repo['html_url']); ?>" target="_blank">
-                            <?php echo htmlspecialchars($repo['name']); ?>
+                        <a href="<?= htmlspecialchars($repo['html_url'] ?? '#'); ?>" target="_blank">
+                            <?= htmlspecialchars($repo['name'] ?? 'N/A'); ?>
                         </a>
                     </div>
                     <div class="repo-description">
-                        <?php echo !empty($repo['description']) ? htmlspecialchars($repo['description']) : 'Bu proje için henüz açıklama eklenmemiş.'; ?>
+                        <?= !empty($repo['description']) ? htmlspecialchars($repo['description']) : 'Bu proje için henüz açıklama eklenmemiş.'; ?>
                     </div>
                     <div class="repo-stats">
                         <span>
                             <i class="fas fa-star"></i>
-                            <?php echo $repo['stargazers_count']; ?>
+                            <?= htmlspecialchars($repo['stargazers_count'] ?? 0); ?>
                         </span>
                         <span>
                             <i class="fas fa-code-branch"></i>
-                            <?php echo $repo['forks_count']; ?>
+                            <?= htmlspecialchars($repo['forks_count'] ?? 0); ?>
                         </span>
                         <span>
                             <i class="fas fa-eye"></i>
-                            <?php echo $repo['watchers_count']; ?>
+                            <?= htmlspecialchars($repo['watchers_count'] ?? 0); ?>
                         </span>
                     </div>
-                    <?php if (!empty($repo['language'])): ?>
+                     <?php
+                    $language = $repo['language'] ?? null;
+                    if ($language):
+                        $colors = [ 
+                             'JavaScript' => '#f1e05a', 'TypeScript' => '#2b7489', 'HTML' => '#e34c26',
+                             'CSS' => '#563d7c', 'PHP' => '#4F5D95', 'Python' => '#3572A5',
+                             'Java' => '#b07219', 'C#' => '#178600', 'C++' => '#f34b7d',
+                             'Ruby' => '#701516', 'Go' => '#00ADD8', 'Swift' => '#ffac45',
+                             'Kotlin' => '#F18E33', 'Rust' => '#dea584'
+                        ];
+                        $languageColor = $colors[$language] ?? '#999';
+                    ?>
                     <div class="repo-language">
-                        <span class="language-color" style="background-color: 
-                            <?php 
-                            $colors = [
-                                'JavaScript' => '#f1e05a',
-                                'TypeScript' => '#2b7489',
-                                'HTML' => '#e34c26',
-                                'CSS' => '#563d7c',
-                                'PHP' => '#4F5D95',
-                                'Python' => '#3572A5',
-                                'Java' => '#b07219',
-                                'C#' => '#178600',
-                                'C++' => '#f34b7d',
-                                'Ruby' => '#701516',
-                                'Go' => '#00ADD8',
-                                'Swift' => '#ffac45',
-                                'Kotlin' => '#F18E33',
-                                'Rust' => '#dea584'
-                            ];
-                            echo isset($colors[$repo['language']]) ? $colors[$repo['language']] : '#999';
-                            ?>
-                        "></span>
-                        <?php echo htmlspecialchars($repo['language']); ?>
+                        <span class="language-color" style="background-color: <?= htmlspecialchars($languageColor); ?>"></span>
+                        <?= htmlspecialchars($language); ?>
                     </div>
                     <?php endif; ?>
                     <div class="repo-dates">
                         <span>
-                            <i class="fas fa-calendar-plus"></i> 
-                            <?php echo formatDate($repo['created_at']); ?>
+                            <i class="fas fa-calendar-plus"></i>
+                            <?= htmlspecialchars(formatDate($repo['created_at'] ?? '')); ?>
                         </span>
                         <span>
-                            <i class="fas fa-sync-alt"></i> 
-                            <?php echo formatDate($repo['updated_at']); ?>
+                            <i class="fas fa-sync-alt"></i>
+                            <?= htmlspecialchars(formatDate($repo['updated_at'] ?? '')); ?>
                         </span>
                     </div>
                 </div>
@@ -421,7 +402,6 @@ if (isset($repositories['error'])) {
                 <?php endif; ?>
             </div>
             
-            <!-- SON GÜNCELLEMELER BÖLÜMÜ -->
             <div class="section-header">
                 <h3 id="son-guncellemeler-liste">
                     <i class="fas fa-history"></i>
@@ -437,61 +417,52 @@ if (isset($repositories['error'])) {
                 ?>
                 <div class="repo-card">
                     <div class="repo-name">
-                        <a href="<?php echo htmlspecialchars($repo['html_url']); ?>" target="_blank">
-                            <?php echo htmlspecialchars($repo['name']); ?>
+                        <a href="<?= htmlspecialchars($repo['html_url'] ?? '#'); ?>" target="_blank">
+                            <?= htmlspecialchars($repo['name'] ?? 'N/A'); ?>
                         </a>
                     </div>
                     <div class="repo-description">
-                        <?php echo !empty($repo['description']) ? htmlspecialchars($repo['description']) : 'Bu proje için henüz açıklama eklenmemiş.'; ?>
+                        <?= !empty($repo['description']) ? htmlspecialchars($repo['description']) : 'Bu proje için henüz açıklama eklenmemiş.'; ?>
                     </div>
                     <div class="repo-stats">
                         <span>
                             <i class="fas fa-star"></i>
-                            <?php echo $repo['stargazers_count']; ?>
+                            <?= htmlspecialchars($repo['stargazers_count'] ?? 0); ?>
                         </span>
                         <span>
                             <i class="fas fa-code-branch"></i>
-                            <?php echo $repo['forks_count']; ?>
+                            <?= htmlspecialchars($repo['forks_count'] ?? 0); ?>
                         </span>
                         <span>
                             <i class="fas fa-eye"></i>
-                            <?php echo $repo['watchers_count']; ?>
+                            <?= htmlspecialchars($repo['watchers_count'] ?? 0); ?>
                         </span>
                     </div>
-                    <?php if (!empty($repo['language'])): ?>
+                    <?php
+                    $language = $repo['language'] ?? null;
+                    if ($language):
+                         $colors = [ 
+                             'JavaScript' => '#f1e05a', 'TypeScript' => '#2b7489', 'HTML' => '#e34c26',
+                             'CSS' => '#563d7c', 'PHP' => '#4F5D95', 'Python' => '#3572A5',
+                             'Java' => '#b07219', 'C#' => '#178600', 'C++' => '#f34b7d',
+                             'Ruby' => '#701516', 'Go' => '#00ADD8', 'Swift' => '#ffac45',
+                             'Kotlin' => '#F18E33', 'Rust' => '#dea584'
+                         ];
+                        $languageColor = $colors[$language] ?? '#999';
+                    ?>
                     <div class="repo-language">
-                        <span class="language-color" style="background-color: 
-                            <?php 
-                            $colors = [
-                                'JavaScript' => '#f1e05a',
-                                'TypeScript' => '#2b7489',
-                                'HTML' => '#e34c26',
-                                'CSS' => '#563d7c',
-                                'PHP' => '#4F5D95',
-                                'Python' => '#3572A5',
-                                'Java' => '#b07219',
-                                'C#' => '#178600',
-                                'C++' => '#f34b7d',
-                                'Ruby' => '#701516',
-                                'Go' => '#00ADD8',
-                                'Swift' => '#ffac45',
-                                'Kotlin' => '#F18E33',
-                                'Rust' => '#dea584'
-                            ];
-                            echo isset($colors[$repo['language']]) ? $colors[$repo['language']] : '#999';
-                            ?>
-                        "></span>
-                        <?php echo htmlspecialchars($repo['language']); ?>
+                        <span class="language-color" style="background-color: <?= htmlspecialchars($languageColor); ?>"></span>
+                        <?= htmlspecialchars($language); ?>
                     </div>
                     <?php endif; ?>
                     <div class="repo-dates">
                         <span>
-                            <i class="fas fa-calendar-plus"></i> 
-                            <?php echo formatDate($repo['created_at']); ?>
+                            <i class="fas fa-calendar-plus"></i>
+                            <?= htmlspecialchars(formatDate($repo['created_at'] ?? '')); ?>
                         </span>
                         <span>
-                            <i class="fas fa-sync-alt"></i> 
-                            <?php echo formatDate($repo['updated_at']); ?>
+                            <i class="fas fa-sync-alt"></i>
+                            <?= htmlspecialchars(formatDate($repo['updated_at'] ?? '')); ?>
                         </span>
                     </div>
                 </div>
@@ -507,7 +478,6 @@ if (isset($repositories['error'])) {
         <?php endif; ?>
     </div>
     
-    <!-- FOOTER BÖLÜMÜ -->
     <footer class="site-footer">
         <div class="copyright">
             © 2025 KynuxDev. Tüm hakları saklıdır.
@@ -517,14 +487,12 @@ if (isset($repositories['error'])) {
         </div>
     </footer>
     
-    <!-- GERİ DÖN BUTONU -->
     <a href="index.php" class="back-button">
         <i class="fas fa-arrow-left"></i> Ana Sayfaya Dön
     </a>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Repo arama işlevi
             const searchInput = document.getElementById('repoSearch');
             const repoCards = document.querySelectorAll('.repo-card');
             
@@ -546,7 +514,6 @@ if (isset($repositories['error'])) {
                 });
             });
             
-            // Bölüm kartlarına tıklama işlevi
             const sectionBoxes = document.querySelectorAll('.section-box');
             sectionBoxes.forEach(box => {
                 box.addEventListener('click', function() {
@@ -558,7 +525,6 @@ if (isset($repositories['error'])) {
                 });
             });
             
-            // Animasyon efektleri
             const animateElements = document.querySelectorAll('.repo-card, .section-box, .profile-avatar, .stat');
             animateElements.forEach((element, index) => {
                 setTimeout(() => {

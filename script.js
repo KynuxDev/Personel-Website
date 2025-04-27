@@ -412,13 +412,22 @@ document.addEventListener('DOMContentLoaded', function() {
         discordCard.querySelectorAll('.activity, .no-activity').forEach(el => el.remove());
         
         const newContainer = document.createElement('div');
-        
+        const p = document.createElement('p');
+        const i = document.createElement('i');
+        i.className = 'fas fa-gamepad';
+        p.appendChild(i);
+
         if (status.game && status.has_game) {
             newContainer.className = 'activity';
-            newContainer.innerHTML = `<p><i class="fas fa-gamepad"></i> Oynanıyor: <span>${status.game}</span></p>`;
+            const textNode = document.createTextNode(' Oynanıyor: ');
+            const span = document.createElement('span');
+            span.textContent = status.game; // Use textContent for safety
+            p.appendChild(textNode);
+            p.appendChild(span);
         } else {
             newContainer.className = 'no-activity';
-            newContainer.innerHTML = `<p><i class="fas fa-gamepad"></i> Oyun oynamıyor</p>`;
+            const textNode = document.createTextNode(' Oyun oynamıyor');
+            p.appendChild(textNode);
         }
         
         discordCard.querySelector('.platform-info').appendChild(newContainer);
@@ -443,23 +452,48 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!nowPlaying) {
                 const newNowPlaying = document.createElement('div');
                 newNowPlaying.className = 'now-playing';
-                newNowPlaying.innerHTML = `
-                    <div class="album-art">
-                        <img src="${status.album_art}" alt="Album Art">
-                        <div class="playing-animation">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                    <div class="song-info">
-                        <p class="song-title">${status.song}</p>
-                        <p class="artist">${status.artist}</p>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: ${status.progress_percent || 0}%;"></div>
-                        </div>
-                    </div>
-                `;
+
+                // Create elements safely
+                const albumArtDiv = document.createElement('div');
+                albumArtDiv.className = 'album-art';
+
+                const img = document.createElement('img');
+                img.src = status.album_art || ''; // Set src directly
+                img.alt = 'Album Art';
+
+                const playingAnimationDiv = document.createElement('div');
+                playingAnimationDiv.className = 'playing-animation';
+                for (let i = 0; i < 3; i++) {
+                    playingAnimationDiv.appendChild(document.createElement('span'));
+                }
+
+                albumArtDiv.appendChild(img);
+                albumArtDiv.appendChild(playingAnimationDiv);
+
+                const songInfoDiv = document.createElement('div');
+                songInfoDiv.className = 'song-info';
+
+                const songTitleP = document.createElement('p');
+                songTitleP.className = 'song-title';
+                songTitleP.textContent = status.song || ''; // Use textContent
+
+                const artistP = document.createElement('p');
+                artistP.className = 'artist';
+                artistP.textContent = status.artist || ''; // Use textContent
+
+                const progressBarDiv = document.createElement('div');
+                progressBarDiv.className = 'progress-bar';
+                const progressDiv = document.createElement('div');
+                progressDiv.className = 'progress';
+                progressDiv.style.width = `${status.progress_percent || 0}%`;
+                progressBarDiv.appendChild(progressDiv);
+
+                songInfoDiv.appendChild(songTitleP);
+                songInfoDiv.appendChild(artistP);
+                songInfoDiv.appendChild(progressBarDiv);
+
+                newNowPlaying.appendChild(albumArtDiv);
+                newNowPlaying.appendChild(songInfoDiv);
                 spotifyInfo.appendChild(newNowPlaying);
                 
                 animateMusicBars();
@@ -482,7 +516,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!notPlaying) {
                 const newNotPlaying = document.createElement('div');
                 newNotPlaying.className = 'not-playing';
-                newNotPlaying.innerHTML = `<p>Şu anda müzik dinlenmiyor</p>`;
+                const p = document.createElement('p');
+                p.textContent = 'Şu anda müzik dinlenmiyor'; // Use textContent
+                newNotPlaying.appendChild(p);
                 spotifyInfo.appendChild(newNotPlaying);
             }
         }

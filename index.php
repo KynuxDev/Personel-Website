@@ -1,47 +1,55 @@
 <?php
 session_start();
 
+function fetch_url_with_curl($url, $user_agent = 'PHP App') {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
+
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+
+    if ($curl_error) {
+        error_log("cURL Error fetching {$url}: {$curl_error}");
+        return ['error' => 'Veri alınırken bir hata oluştu. URL: ' . $url];
+    }
+
+    if ($http_code >= 400) {
+        error_log("HTTP Error {$http_code} fetching {$url}");
+         $decoded_response = json_decode($response, true);
+         $api_message = $decoded_response['message'] ?? 'API hatası';
+        return ['error' => "API'den hata alındı ({$http_code}): " . $api_message . ". URL: " . $url];
+    }
+    
+    return json_decode($response, true);
+}
+
 function getGithubRepositories($username) {
     $url = "https://api.github.com/users/{$username}/repos";
-    
-    $options = [
-        'http' => [
-            'method' => 'GET',
-            'header' => [
-                'User-Agent: PHP GitHub Portfolio'
-            ]
-        ]
-    ];
-    
-    $context = stream_context_create($options);
-    
-    $response = @file_get_contents($url, false, $context);
-    
-    if ($response === false) {
-        return ['error' => 'GitHub API\'sine bağlanılamadı.'];
-    }
-    
-    $repositories = json_decode($response, true);
-    
-    if (isset($repositories['message'])) {
-        return ['error' => $repositories['message']];
-    }
-    
+    $repositories = fetch_url_with_curl($url, 'PHP GitHub Portfolio');
+
     return $repositories;
 }
 
 function sortRepositories($repositories, $sortBy = 'updated') {
+    $validSorts = ['updated', 'stars', 'created'];
+    $sortBy = in_array($sortBy, $validSorts) ? $sortBy : 'updated';
+
     usort($repositories, function($a, $b) use ($sortBy) {
-        if ($sortBy === 'stars') {
-            return $b['stargazers_count'] - $a['stargazers_count'];
-        } else if ($sortBy === 'updated') {
-            return strtotime($b['updated_at']) - strtotime($a['updated_at']);
-        } else if ($sortBy === 'created') {
-            return strtotime($b['created_at']) - strtotime($a['created_at']);
+        switch ($sortBy) {
+            case 'stars':
+                return ($b['stargazers_count'] ?? 0) - ($a['stargazers_count'] ?? 0);
+            case 'created':
+                return (strtotime($b['created_at'] ?? 0) ?: 0) - (strtotime($a['created_at'] ?? 0) ?: 0);
+            case 'updated':
+            default:
+                return (strtotime($b['updated_at'] ?? 0) ?: 0) - (strtotime($a['updated_at'] ?? 0) ?: 0);
         }
-        return 0;
     });
-    
+
     return $repositories;
 }
 
@@ -52,69 +60,43 @@ function formatDate($dateString) {
 
 function getGithubUserInfo($username) {
     $url = "https://api.github.com/users/{$username}";
-    
-    $options = [
-        'http' => [
-            'method' => 'GET',
-            'header' => [
-                'User-Agent: PHP GitHub Portfolio'
-            ]
-        ]
-    ];
-    
-    $context = stream_context_create($options);
-    $response = @file_get_contents($url, false, $context);
-    
-    if ($response === false) {
-        return ['error' => 'GitHub API\'sine bağlanılamadı.'];
-    }
-    
-    $userInfo = json_decode($response, true);
-    
-    if (isset($userInfo['message'])) {
-        return ['error' => $userInfo['message']];
-    }
+    $userInfo = fetch_url_with_curl($url, 'PHP GitHub Portfolio');
     
     return $userInfo;
 }
 
-// Gereksiz kodlar temizlendi: Platform verilerini direk API'den alıyoruz
-// Önceden bu dosyada yer alan getDiscordStatus() ve getSpotifyStatus() fonksiyonları kaldırıldı
-// get-status.php dosyasından güncel verileri alıyoruz
 
-$api_url = 'get-status.php';
-$response = @file_get_contents($api_url);
-if ($response === false) {
-    // API yanıt vermediğinde varsayılan veriler kullanılıyor
-    $discord = [
-        'status' => 'online',
-        'game' => '',
-        'has_game' => false,
-        'username' => 'kynux.dev',
-        'discriminator' => '0'
-    ];
-    $spotify = [
-        'is_playing' => false,
-        'song' => '',
-        'artist' => '',
-        'album_art' => ''
-    ];
-} else {
-    $statusData = json_decode($response, true);
-    // Doğrudan API'den gelen verileri kullan
-    $discord = $statusData['discord'] ?? [
-        'status' => 'online',
-        'game' => '',
-        'has_game' => false,
-        'username' => 'kynux.dev',
-        'discriminator' => '0'
-    ];
-    $spotify = $statusData['spotify'] ?? [
-        'is_playing' => false,
-        'song' => '',
-        'artist' => '',
-        'album_art' => ''
-    ];
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$base_path = dirname($_SERVER['SCRIPT_NAME']);
+$base_path = rtrim($base_path, '/');
+$api_url = $protocol . $host . $base_path . '/get-status.php';
+
+$statusData = fetch_url_with_curl($api_url);
+
+$default_discord = [
+    'status' => 'offline',
+    'game' => '',
+    'has_game' => false,
+    'username' => 'kynux.dev',
+    'discriminator' => '0'
+];
+$default_spotify = [
+    'is_playing' => false,
+    'song' => '',
+    'artist' => '',
+    'album_art' => '',
+    'progress_percent' => 0
+];
+
+$discord = $default_discord;
+$spotify = $default_spotify;
+
+if (isset($statusData) && !isset($statusData['error'])) {
+    $discord = array_merge($default_discord, $statusData['discord'] ?? []);
+    $spotify = array_merge($default_spotify, $statusData['spotify'] ?? []);
+} elseif (isset($statusData['error'])) {
+    error_log("Error fetching status data from {$api_url}: " . $statusData['error']);
 }
 
 $api_setup_info = "";
@@ -146,9 +128,9 @@ $api_setup_info = "";
             <li><a href="#contact">İletişim</a></li>
         </ul>
         <div class="social-links">
-            <a href="<?php echo getenv('GITHUB_URL') ?: 'https://github.com/KynuxDev'; ?>" target="_blank"><i class="fab fa-github"></i></a>
-            <a href="<?php echo getenv('LINKEDIN_URL') ?: '#'; ?>" target="_blank"><i class="fab fa-linkedin"></i></a>
-            <a href="<?php echo getenv('TWITTER_URL') ?: '#'; ?>" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="<?= htmlspecialchars(getenv('GITHUB_URL') ?? 'https://github.com/KynuxDev') ?>" target="_blank"><i class="fab fa-github"></i></a>
+            <a href="<?= htmlspecialchars(getenv('LINKEDIN_URL') ?? '#') ?>" target="_blank"><i class="fab fa-linkedin"></i></a>
+            <a href="<?= htmlspecialchars(getenv('TWITTER_URL') ?? '#') ?>" target="_blank"><i class="fab fa-twitter"></i></a>
         </div>
     </nav>
 
@@ -188,22 +170,23 @@ $api_setup_info = "";
                     </div>
                     <div class="platform-info">
                         <h3>Discord</h3>
-                        <div class="status-indicator <?php echo $discord['status']; ?>">
+                        <div class="status-indicator <?= htmlspecialchars($discord['status'] ?? 'offline') ?>">
                             <span class="status-dot"></span>
                             <span class="status-text">
-                                <?php 
-                                    switch($discord['status']) {
-                                        case 'online': echo 'Çevrimiçi'; break;
-                                        case 'idle': echo 'Boşta'; break;
-                                        case 'dnd': echo 'Rahatsız Etmeyin'; break;
-                                        default: echo 'Çevrimdışı';
+                                <?php
+                                    $status_text = 'Çevrimdışı';
+                                    switch($discord['status'] ?? 'offline') {
+                                        case 'online': $status_text = 'Çevrimiçi'; break;
+                                        case 'idle': $status_text = 'Boşta'; break;
+                                        case 'dnd': $status_text = 'Rahatsız Etmeyin'; break;
                                     }
+                                    echo htmlspecialchars($status_text);
                                 ?>
                             </span>
                         </div>
                         <?php if (!empty($discord['game'])): ?>
                         <div class="activity">
-                            <p><i class="fas fa-gamepad"></i> Oynanıyor: <span><?php echo $discord['game']; ?></span></p>
+                            <p><i class="fas fa-gamepad"></i> Oynanıyor: <span><?= htmlspecialchars($discord['game']) ?></span></p>
                         </div>
                         <?php else: ?>
                         <div class="no-activity">
@@ -211,7 +194,7 @@ $api_setup_info = "";
                         </div>
                         <?php endif; ?>
                         
-                        <div class="last-update-time">Son güncelleme: <?php echo date('H:i:s'); ?></div>
+                        <div class="last-update-time">Son güncelleme: <?= htmlspecialchars(date('H:i:s')) ?></div>
                     </div>
                 </div>
                 
@@ -224,7 +207,7 @@ $api_setup_info = "";
                         <?php if ($spotify['is_playing']): ?>
                         <div class="now-playing">
                             <div class="album-art">
-                                <img src="<?php echo $spotify['album_art']; ?>" alt="Album Art">
+                                <img src="<?= htmlspecialchars($spotify['album_art'] ?? '') ?>" alt="Album Art">
                                 <div class="playing-animation">
                                     <span></span>
                                     <span></span>
@@ -232,10 +215,10 @@ $api_setup_info = "";
                                 </div>
                             </div>
                             <div class="song-info">
-                                <p class="song-title"><?php echo $spotify['song']; ?></p>
-                                <p class="artist"><?php echo $spotify['artist']; ?></p>
+                                <p class="song-title"><?= htmlspecialchars($spotify['song'] ?? '') ?></p>
+                                <p class="artist"><?= htmlspecialchars($spotify['artist'] ?? '') ?></p>
                                 <div class="progress-bar">
-                                    <div class="progress" style="width: <?php echo isset($spotify['progress_percent']) ? $spotify['progress_percent'] : 0; ?>%;"></div>
+                                    <div class="progress" style="width: <?= htmlspecialchars($spotify['progress_percent'] ?? 0) ?>%;"></div>
                                 </div>
                             </div>
                         </div>
@@ -245,7 +228,7 @@ $api_setup_info = "";
                         </div>
                         <?php endif; ?>
                         
-                        <div class="last-update-time">Son güncelleme: <?php echo date('H:i:s'); ?></div>
+                        <div class="last-update-time">Son güncelleme: <?= htmlspecialchars(date('H:i:s')) ?></div>
                     </div>
                 </div>
             </div>
@@ -351,7 +334,11 @@ $api_setup_info = "";
             <?php
             $github_username = 'KynuxDev';
 
-            $sort_by = isset($_GET['sort']) ? $_GET['sort'] : 'updated';
+            $allowed_sort_options = ['updated', 'stars', 'created'];
+            $sort_by = 'updated';
+            if (isset($_GET['sort']) && in_array($_GET['sort'], $allowed_sort_options)) {
+                $sort_by = $_GET['sort'];
+            }
 
             $repositories = getGithubRepositories($github_username);
             $userInfo = getGithubUserInfo($github_username);
@@ -367,33 +354,33 @@ $api_setup_info = "";
             
             <?php if ($error): ?>
                 <div class="error-message" data-aos="fade-up">
-                    <p><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?></p>
+                    <p><i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($error) ?></p>
                 </div>
             <?php else: ?>
                 <div class="github-profile" data-aos="fade-up">
                     <?php if (!isset($userInfo['error'])): ?>
                         <div class="profile-summary">
-                            <img class="profile-image" src="<?php echo htmlspecialchars($userInfo['avatar_url']); ?>" alt="<?php echo htmlspecialchars($github_username); ?> profil resmi">
+                            <img class="profile-image" src="<?= htmlspecialchars($userInfo['avatar_url'] ?? '') ?>" alt="<?= htmlspecialchars($github_username) ?> profil resmi">
                             <div class="profile-details">
-                                <h3 class="profile-name"><?php echo htmlspecialchars($userInfo['name'] ?? $github_username); ?></h3>
-                                <p class="profile-username">@<?php echo htmlspecialchars($github_username); ?></p>
-                                
+                                <h3 class="profile-name"><?= htmlspecialchars($userInfo['name'] ?? $github_username) ?></h3>
+                                <p class="profile-username">@<?= htmlspecialchars($github_username) ?></p>
+
                                 <?php if (!empty($userInfo['bio'])): ?>
-                                    <p class="profile-bio"><?php echo htmlspecialchars($userInfo['bio']); ?></p>
+                                    <p class="profile-bio"><?= htmlspecialchars($userInfo['bio']) ?></p>
                                 <?php endif; ?>
-                                
+
                                 <div class="profile-stats">
                                     <div class="stat">
                                         <i class="fas fa-users"></i>
-                                        <span><?php echo htmlspecialchars($userInfo['followers']); ?> Takipçi</span>
+                                        <span><?= htmlspecialchars($userInfo['followers'] ?? 0) ?> Takipçi</span>
                                     </div>
                                     <div class="stat">
                                         <i class="fas fa-user-plus"></i>
-                                        <span><?php echo htmlspecialchars($userInfo['following']); ?> Takip Edilen</span>
+                                        <span><?= htmlspecialchars($userInfo['following'] ?? 0) ?> Takip Edilen</span>
                                     </div>
                                     <div class="stat">
                                         <i class="fas fa-code-branch"></i>
-                                        <span><?php echo count($repositories); ?> Repo</span>
+                                        <span><?= count($repositories) ?> Repo</span>
                                     </div>
                                 </div>
                             </div>
@@ -403,13 +390,13 @@ $api_setup_info = "";
                 
                 <div class="sort-controls" data-aos="fade-up">
                     <div class="sort-options">
-                        <a href="?sort=updated" class="<?php echo $sort_by === 'updated' ? 'active' : ''; ?>">
+                        <a href="?sort=updated" class="<?= $sort_by === 'updated' ? 'active' : '' ?>">
                             <i class="fas fa-clock"></i> Son Güncellenen
                         </a>
-                        <a href="?sort=stars" class="<?php echo $sort_by === 'stars' ? 'active' : ''; ?>">
+                        <a href="?sort=stars" class="<?= $sort_by === 'stars' ? 'active' : '' ?>">
                             <i class="fas fa-star"></i> Yıldızlar
                         </a>
-                        <a href="?sort=created" class="<?php echo $sort_by === 'created' ? 'active' : ''; ?>">
+                        <a href="?sort=created" class="<?= $sort_by === 'created' ? 'active' : '' ?>">
                             <i class="fas fa-calendar-plus"></i> Yeni Eklenen
                         </a>
                     </div>
@@ -451,47 +438,47 @@ $api_setup_info = "";
                         ?>
                         <div class="repo-card" data-aos="zoom-in-up">
                             <div class="repo-name">
-                                <a href="<?php echo htmlspecialchars($repo['html_url']); ?>" target="_blank">
-                                    <?php echo htmlspecialchars($repo['name']); ?>
+                                <a href="<?= htmlspecialchars($repo['html_url'] ?? '#') ?>" target="_blank">
+                                    <?= htmlspecialchars($repo['name'] ?? 'N/A') ?>
                                 </a>
                             </div>
                             
                             <?php if (!empty($repo['description'])): ?>
                                 <div class="repo-description">
-                                    <?php echo htmlspecialchars($repo['description']); ?>
+                                    <?= htmlspecialchars($repo['description'] ?? '') ?>
                                 </div>
                             <?php endif; ?>
                             
                             <div class="repo-stats">
                                 <span>
                                     <i class="fas fa-star"></i>
-                                    <?php echo $repo['stargazers_count']; ?>
+                                    <?= htmlspecialchars($repo['stargazers_count'] ?? 0) ?>
                                 </span>
                                 <span>
                                     <i class="fas fa-code-branch"></i>
-                                    <?php echo $repo['forks_count']; ?>
+                                    <?= htmlspecialchars($repo['forks_count'] ?? 0) ?>
                                 </span>
                                 <span>
                                     <i class="fas fa-eye"></i>
-                                    <?php echo $repo['watchers_count']; ?>
+                                    <?= htmlspecialchars($repo['watchers_count'] ?? 0) ?>
                                 </span>
                             </div>
                             
                             <?php if (!empty($repo['language'])): ?>
                                 <div class="repo-language">
-                                    <span class="language-color" style="background-color: <?php echo $languageColor; ?>"></span>
-                                    <?php echo htmlspecialchars($repo['language']); ?>
+                                    <span class="language-color" style="background-color: <?= htmlspecialchars($languageColor) ?>"></span>
+                                    <?= htmlspecialchars($repo['language'] ?? 'N/A') ?>
                                 </div>
                             <?php endif; ?>
                             
                             <div class="repo-dates">
                                 <span>
                                     <i class="fas fa-calendar-plus"></i> 
-                                    <?php echo formatDate($repo['created_at']); ?>
+                                    <?= htmlspecialchars(formatDate($repo['created_at'] ?? '')) ?>
                                 </span>
                                 <span>
-                                    <i class="fas fa-sync-alt"></i> 
-                                    <?php echo formatDate($repo['updated_at']); ?>
+                                    <i class="fas fa-sync-alt"></i>
+                                    <?= htmlspecialchars(formatDate($repo['updated_at'] ?? '')) ?>
                                 </span>
                             </div>
                         </div>
@@ -500,7 +487,7 @@ $api_setup_info = "";
                     
                     <?php if (count($repositories) > 6): ?>
                     <div class="more-repos-link" data-aos="fade-up">
-                        <a href="https://github.com/<?php echo htmlspecialchars($github_username); ?>?tab=repositories" class="btn btn-outline" target="_blank">
+                        <a href="https://github.com/<?= htmlspecialchars($github_username) ?>?tab=repositories" class="btn btn-outline" target="_blank">
                             <i class="fab fa-github"></i> Tüm Projeleri GitHub'da Görüntüle
                         </a>
                     </div>
@@ -521,22 +508,22 @@ $api_setup_info = "";
                 <div class="contact-info" data-aos="fade-up" data-aos-delay="200">
                     <div class="contact-item">
                         <i class="fas fa-envelope"></i>
-                        <a href="mailto:<?php echo getenv('CONTACT_EMAIL') ?: 'iletisim@kynux.dev.com'; ?>"><?php echo getenv('CONTACT_EMAIL') ?: 'iletisim@kynux.dev.com'; ?></a>
+                        <a href="mailto:<?= htmlspecialchars(getenv('CONTACT_EMAIL') ?? 'iletisim@kynux.dev.com') ?>"><?= htmlspecialchars(getenv('CONTACT_EMAIL') ?? 'iletisim@kynux.dev.com') ?></a>
                     </div>
-                    
+
                     <div class="contact-item">
                         <i class="fab fa-github"></i>
-                        <a href="<?php echo getenv('GITHUB_URL') ?: 'https://github.com/KynuxDev'; ?>" target="_blank"><?php echo str_replace('https://', '', getenv('GITHUB_URL')) ?: 'github.com/KynuxDev'; ?></a>
+                        <a href="<?= htmlspecialchars(getenv('GITHUB_URL') ?? 'https://github.com/KynuxDev') ?>" target="_blank"><?= htmlspecialchars(str_replace('https://', '', getenv('GITHUB_URL') ?? 'github.com/KynuxDev')) ?></a>
                     </div>
-                    
+
                     <div class="contact-item">
                         <i class="fab fa-linkedin"></i>
-                        <a href="<?php echo getenv('LINKEDIN_URL') ?: 'https://linkedin.com/in/KynuxDev'; ?>" target="_blank"><?php echo str_replace('https://', '', getenv('LINKEDIN_URL')) ?: 'linkedin.com/in/KynuxDev'; ?></a>
+                        <a href="<?= htmlspecialchars(getenv('LINKEDIN_URL') ?? 'https://linkedin.com/in/KynuxDev') ?>" target="_blank"><?= htmlspecialchars(str_replace('https://', '', getenv('LINKEDIN_URL') ?? 'linkedin.com/in/KynuxDev')) ?></a>
                     </div>
-                    
+
                     <div class="contact-item">
                         <i class="fab fa-twitter"></i>
-                        <a href="<?php echo getenv('TWITTER_URL') ?: 'https://twitter.com/KynuxDev'; ?>" target="_blank"><?php echo getenv('TWITTER_URL') ? '@'.basename(getenv('TWITTER_URL')) : '@KynuxDev'; ?></a>
+                        <a href="<?= htmlspecialchars(getenv('TWITTER_URL') ?? 'https://twitter.com/KynuxDev') ?>" target="_blank"><?= htmlspecialchars(getenv('TWITTER_URL') ? '@'.basename(getenv('TWITTER_URL')) : '@KynuxDev') ?></a>
                     </div>
                 </div>
                 
@@ -547,7 +534,7 @@ $api_setup_info = "";
                 ?>
                 <div class="contact-form" data-aos="fade-up" data-aos-delay="400">
                     <form action="process-form.php" method="POST">
-                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                         <div class="form-group">
                             <input type="text" id="name" name="name" placeholder="Adınız" required>
                         </div>
@@ -582,9 +569,9 @@ $api_setup_info = "";
                 </div>
                 
                 <div class="footer-social">
-                    <a href="<?php echo getenv('GITHUB_URL') ?: 'https://github.com/KynuxDev'; ?>" target="_blank"><i class="fab fa-github"></i></a>
-                    <a href="<?php echo getenv('LINKEDIN_URL') ?: '#'; ?>" target="_blank"><i class="fab fa-linkedin"></i></a>
-                    <a href="<?php echo getenv('TWITTER_URL') ?: '#'; ?>" target="_blank"><i class="fab fa-twitter"></i></a>
+                    <a href="<?= htmlspecialchars(getenv('GITHUB_URL') ?? 'https://github.com/KynuxDev') ?>" target="_blank"><i class="fab fa-github"></i></a>
+                    <a href="<?= htmlspecialchars(getenv('LINKEDIN_URL') ?? '#') ?>" target="_blank"><i class="fab fa-linkedin"></i></a>
+                    <a href="<?= htmlspecialchars(getenv('TWITTER_URL') ?? '#') ?>" target="_blank"><i class="fab fa-twitter"></i></a>
                 </div>
             </div>
             
