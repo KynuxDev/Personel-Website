@@ -183,8 +183,9 @@ function getSpotifyStatus() {
             log_message('ERROR', "Spotify token refresh failed: " . $token_response['error']);
              if (strpos($token_response['error'], 'invalid_grant') !== false) {
                  unset($config_data['access_token'], $config_data['refresh_token'], $config_data['token_expiry']);
-                 if(!@file_put_contents($spotify_config_file, json_encode($config_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
-                    log_message('ERROR', "Could not clear invalid tokens from config file: " . $spotify_config_file);
+                 // LOCK_EX ekleyerek atomik yazma sağla
+                 if(!@file_put_contents($spotify_config_file, json_encode($config_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX)) {
+                     log_message('ERROR', "Could not clear invalid tokens from config file: " . $spotify_config_file);
                  }
                  return array_merge($default_status, ['error' => 'Spotify yetkilendirmesi geçersiz, tekrar bağlanın.', 'auth_required' => true]);
              }
@@ -203,7 +204,8 @@ function getSpotifyStatus() {
                 log_message('INFO', "Spotify refresh token was also updated.");
             }
 
-            if (!@file_put_contents($spotify_config_file, json_encode($config_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
+            // LOCK_EX ekleyerek atomik yazma sağla
+            if (!@file_put_contents($spotify_config_file, json_encode($config_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX)) {
                  log_message('ERROR', "Could not write updated Spotify token to config file: " . $spotify_config_file);
             }
         } else {
@@ -223,7 +225,8 @@ function getSpotifyStatus() {
         log_message('ERROR', "Spotify player API error: " . $player_response['error']);
         if (($player_response['http_code'] ?? 0) == 401) {
              unset($config_data['access_token'], $config_data['token_expiry']);
-             @file_put_contents($spotify_config_file, json_encode($config_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+             // LOCK_EX ekleyerek atomik yazma sağla
+             @file_put_contents($spotify_config_file, json_encode($config_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
              log_message('WARNING', "Received 401 from Spotify Player API, cleared access token for next refresh.");
         }
         return array_merge($default_status, ['error' => 'Spotify player bilgisi alınamadı.']);
