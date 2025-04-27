@@ -336,8 +336,10 @@ $api_setup_info = "";
 
             $allowed_sort_options = ['updated', 'stars', 'created'];
             $sort_by = 'updated';
-            if (isset($_GET['sort']) && in_array($_GET['sort'], $allowed_sort_options)) {
-                $sort_by = $_GET['sort'];
+            // GET parametresini filter_input ile al ve beyaz listeye göre kontrol et (github-portfolio.php ile tutarlı hale getir)
+            $sort_input = filter_input(INPUT_GET, 'sort', FILTER_DEFAULT);
+            if ($sort_input && in_array($sort_input, $allowed_sort_options)) {
+                $sort_by = $sort_input;
             }
 
             $repositories = getGithubRepositories($github_username);

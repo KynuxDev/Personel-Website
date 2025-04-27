@@ -89,9 +89,9 @@ if ($config_data === false) {
         $redirect_uri = $protocol . $host . $script_name;
 
         $get_params = filter_input_array(INPUT_GET, [
-            'code' => FILTER_SANITIZE_STRING,
-            'state' => FILTER_SANITIZE_STRING,
-            'error' => FILTER_SANITIZE_STRING,
+            'code' => FILTER_DEFAULT,  // Özel temizlemeye gerek yok, API'ye gönderilecek veya null olacak
+            'state' => FILTER_DEFAULT, // Özel temizlemeye gerek yok, hash_equals ile karşılaştırılacak
+            'error' => FILTER_DEFAULT, // Özel temizlemeye gerek yok, loglanacak veya mesaj içinde kullanılacak (htmlspecialchars ile gösterilecek)
         ]);
         $code = $get_params['code'] ?? null;
         $state = $get_params['state'] ?? null;

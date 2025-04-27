@@ -53,7 +53,8 @@ function write_config($config_file, $config_data) {
          error_log("Error encoding config data for file: " . $config_file . " - " . json_last_error_msg());
         return false;
     }
-    if (file_put_contents($config_file, $json_data) === false) {
+    // LOCK_EX bayrağı eklenerek atomik yazma işlemi sağlanır, race condition önlenir.
+    if (file_put_contents($config_file, $json_data, LOCK_EX) === false) {
         error_log("Error writing to config file: " . $config_file);
         return false;
     }
@@ -74,11 +75,13 @@ if ($config_data === false) {
 }
 
 if (filter_input(INPUT_SERVER, 'REQUEST_METHOD') === 'POST') {
+    // Kullanımdan kaldırılan FILTER_SANITIZE_STRING yerine FILTER_DEFAULT kullan.
+    // Gelen veriler daha sonra trim edilecek veya doğrudan kullanılacak (örn. action, csrf_token).
     $post_data = filter_input_array(INPUT_POST, [
-        'action' => FILTER_SANITIZE_STRING,
-        'csrf_token' => FILTER_SANITIZE_STRING,
-        'client_id' => FILTER_SANITIZE_STRING,
-        'client_secret' => FILTER_SANITIZE_STRING,
+        'action' => FILTER_DEFAULT,
+        'csrf_token' => FILTER_DEFAULT,
+        'client_id' => FILTER_DEFAULT,
+        'client_secret' => FILTER_DEFAULT, // Secret'ın özel karakter içerme olasılığına karşı FILTER_DEFAULT daha güvenli.
     ]);
     $action = $post_data['action'] ?? '';
     $submitted_csrf_token = $post_data['csrf_token'] ?? '';

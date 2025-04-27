@@ -70,7 +70,10 @@ function fetch_with_curl($url, $options = []) {
 
 
 function getDiscordStatus() {
-    $user_id = filter_input(INPUT_ENV, 'DISCORD_USER_ID', FILTER_SANITIZE_STRING) ?: '1244181502795976775'; 
+    // Ortam değişkeninden Discord ID'yi al, yoksa varsayılanı kullan. FILTER_DEFAULT daha modern.
+    $user_id = filter_input(INPUT_ENV, 'DISCORD_USER_ID', FILTER_DEFAULT) ?: '1244181502795976775';
+    // Kullanıcı ID'sinin sadece rakamlardan oluştuğundan emin olmak isteyebiliriz (opsiyonel):
+    // $user_id = filter_var($user_id, FILTER_SANITIZE_NUMBER_INT);
     $api_url = "https://api.lanyard.rest/v1/users/{$user_id}";
 
     $default_status = [

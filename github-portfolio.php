@@ -75,8 +75,10 @@ function sortRepositories($repositories, $sortBy = 'updated') {
 $github_username = 'KynuxDev'; 
 
 $allowed_sort_options = ['updated', 'stars', 'created'];
-$sort_by = 'updated'; 
-$sort_input = filter_input(INPUT_GET, 'sort', FILTER_SANITIZE_STRING);
+$sort_by = 'updated';
+// Kullanımdan kaldırılan FILTER_SANITIZE_STRING yerine FILTER_DEFAULT kullan.
+// Gelen değer zaten in_array ile beyaz listeye göre kontrol ediliyor.
+$sort_input = filter_input(INPUT_GET, 'sort', FILTER_DEFAULT);
 if ($sort_input && in_array($sort_input, $allowed_sort_options)) {
     $sort_by = $sort_input;
 }
