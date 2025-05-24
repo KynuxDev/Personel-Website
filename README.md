@@ -2,7 +2,7 @@
 
 <div align="center">
   
-  <img src="https://i.ibb.co/JRWpKCcM/s.png" alt="KynuxDev Logo" width="320" class="main-logo" style="margin: 20px auto; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.8));" />
+  <img src="https://api.kynux.cloud/img/kynuxcloud-logo.png" alt="KynuxDev Logo" width="320" class="main-logo" style="margin: 20px auto; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.8));" />
 
   Modern ve interaktif teknolojilerle geliştirilmiş profesyonel kişisel web sitesi
 
